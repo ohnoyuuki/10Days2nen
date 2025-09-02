@@ -194,10 +194,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             }
             // アイテム更新
             for (auto& it : items) {
-                if (it.isAlive && !it.isBroken) {
+                if (it.isAlive) {
+                    //HPが残っていても、壊れて取得可能でも動く
                     it.pos.y += it.speed;
-                    if (it.pos.y > kWindowHeight - 200) {
-                        it.isAlive = false; // 境界で消える
+                    // 画面外に到達したら消える
+                    if (it.pos.y > kWindowHeight) {
+                        it.isAlive = false; 
                     }
                 }
             }
