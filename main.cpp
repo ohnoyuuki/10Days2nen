@@ -32,6 +32,16 @@ struct Enemy {
     bool isAlive;
 };
 
+// アイテム
+struct Item {
+    Vector2 pos;
+    float radius;
+    int speed;
+    int hp;         // 耐久値（弾5発で壊れる）
+    bool isAlive;   // 出現中かどうか
+    bool isBroken;  // HP0になって取得可能になったか
+};
+
 // シーン
 enum Scene {
     TITLE,
@@ -63,6 +73,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     // 発射間隔を管理する変数
     int shotCooldown = 0;
 
+    //アイテムリスト
+    std::vector<Item> items;
+    int itemSpawnTimer = 0;
 
     // 敵リスト
     std::vector<Enemy> enemies;
@@ -114,9 +127,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             if (player.pos.x > kWindowWidth) player.pos.x = (float)kWindowWidth;
 
             // 弾発射
-            if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+            if (keys[DIK_SPACE] && shotCooldown == 0) {
                 Bullet b = { {player.pos.x, player.pos.y}, 8.0f, 15, true };
                 bullets.push_back(b);
+                // クールタイムを設定（例：10フレームごとに発射可能）
+                shotCooldown = 10;
             }
 
             // 弾更新
@@ -170,6 +185,53 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                     }
                 }
             }
+            // アイテム出現
+            itemSpawnTimer++;
+            if (itemSpawnTimer > 300) { // 5秒に1回くらい
+                itemSpawnTimer = 0;
+                Item item = { {(float)(minX + rand() % range), 0}, 25.0f, 2, 5, true, false };
+                items.push_back(item);
+            }
+            // アイテム更新
+            for (auto& it : items) {
+                if (it.isAlive && !it.isBroken) {
+                    it.pos.y += it.speed;
+                    if (it.pos.y > kWindowHeight - 200) {
+                        it.isAlive = false; // 境界で消える
+                    }
+                }
+            }
+            // 弾とアイテムの当たり判定
+            for (auto& b : bullets) {
+                if (!b.isAlive) continue;
+                for (auto& it : items) {
+                    if (!it.isAlive || it.isBroken) continue;
+                    float dx = b.pos.x - it.pos.x;
+                    float dy = b.pos.y - it.pos.y;
+                    float dist = sqrtf(dx * dx + dy * dy);
+                    if (dist < b.radius + it.radius) {
+                        b.isAlive = false;
+                        it.hp--;
+                        if (it.hp <= 0) {
+                            it.isBroken = true; // 取得可能状態へ
+                        }
+                    }
+                }
+            }
+            // プレイヤーとアイテムの当たり判定（取得）
+            for (auto& it : items) {
+                if (!it.isAlive || !it.isBroken) continue; // 壊れて取得可能状態のとき
+                float dx = player.pos.x - it.pos.x;
+                float dy = player.pos.y - it.pos.y;
+                float dist = sqrtf(dx * dx + dy * dy);
+                if (dist < player.radius + it.radius) {
+                    it.isAlive = false; // 消える
+                    // 効果：弾スピードアップ
+                    for (auto& b : bullets) {
+                        b.speed += 5; // 既存の弾にも効果を与える
+                    }
+                }
+            }
         } break;
 
         case CLEAR:
@@ -202,7 +264,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         case GAME:
             // 境界線
             Novice::DrawLine(0, kWindowHeight-200, kWindowWidth, kWindowHeight-200, WHITE);
-
+            Novice::DrawLine(400, 0, 400, kWindowHeight, WHITE);
+            Novice::DrawLine(800, 0, 800, kWindowHeight, WHITE);
             // プレイヤー
             Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius,
                 (int)player.radius, 0.0f, BLUE, kFillModeSolid);
@@ -222,9 +285,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                         0.0f, RED, kFillModeSolid);
                 }
             }
+            // アイテム描画
+            for (auto& it : items) {
+                if (!it.isAlive) continue;
 
+                if (!it.isBroken) {
+                    // 壊れてない → 緑色
+                    Novice::DrawEllipse((int)it.pos.x, (int)it.pos.y, (int)it.radius, (int)it.radius,
+                        0.0f, GREEN, kFillModeSolid);
+                } else {
+                    // 壊れて取得可能 → 青色
+                    Novice::DrawEllipse((int)it.pos.x, (int)it.pos.y, (int)it.radius, (int)it.radius,
+                        0.0f, BLUE, kFillModeSolid);
+                }
+
+                // HP表示
+                if (!it.isBroken) {
+                    Novice::ScreenPrintf((int)it.pos.x - 10, (int)it.pos.y - 40, "HP:%d", it.hp);
+                }
+            }
             // 残りライフ
             Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
+
             break;
 
         case CLEAR:
