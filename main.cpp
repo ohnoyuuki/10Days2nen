@@ -66,6 +66,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int enemySpawnTimer = 0;
     int lives = 5;  // 境界を超えられる回数
 
+    int minX = 400;   // 出現範囲の左端
+    int maxX = 880;   // 出現範囲の右端
+    int range = maxX - minX;
+
+
     // メインループ
     while (Novice::ProcessMessage() == 0) {
         Novice::BeginFrame();
@@ -125,7 +130,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             enemySpawnTimer++;
             if (enemySpawnTimer > 60) {
                 enemySpawnTimer = 0;
-                Enemy e = { {(float)(rand() % kWindowWidth), 0}, 20.0f, 4, true };
+                Enemy e = { {(float)(minX + rand() % range), 0}, 20.0f, 4, true };
                 enemies.push_back(e);
             }
 
@@ -133,7 +138,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             for (auto& e : enemies) {
                 if (e.isAlive) {
                     e.pos.y += e.speed;
-                    if (e.pos.y > kWindowHeight / 2) {
+                    if (e.pos.y > kWindowHeight-200) {
                         e.isAlive = false;
                         lives--;
                         if (lives <= 0) {
@@ -188,7 +193,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
         case GAME:
             // 境界線
-            Novice::DrawLine(0, kWindowHeight / 2, kWindowWidth, kWindowHeight / 2, WHITE);
+            Novice::DrawLine(0, kWindowHeight-200, kWindowWidth, kWindowHeight-200, WHITE);
 
             // プレイヤー
             Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius,
