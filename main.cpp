@@ -358,9 +358,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         } break;
 
         case CLEAR:
-            if (keys[DIK_SPACE]) {
-                scene = TITLE;
-            }
+
             break;
 
         case OVER:
