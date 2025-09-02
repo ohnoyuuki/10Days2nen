@@ -60,6 +60,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     // 弾リスト
     std::vector<Bullet> bullets;
+    // 発射間隔を管理する変数
+    int shotCooldown = 0;
+
 
     // 敵リスト
     std::vector<Enemy> enemies;
@@ -67,7 +70,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int lives = 5;  // 境界を超えられる回数
 
     int minX = 400;   // 出現範囲の左端
-    int maxX = 880;   // 出現範囲の右端
+    int maxX = 800;   // 出現範囲の右端
     int range = maxX - minX;
 
 
@@ -112,7 +115,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
             // 弾発射
             if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
-                Bullet b = { {player.pos.x, player.pos.y}, 8.0f, 10, true };
+                Bullet b = { {player.pos.x, player.pos.y}, 8.0f, 15, true };
                 bullets.push_back(b);
             }
 
@@ -125,6 +128,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                     }
                 }
             }
+            // クールタイムを減らす
+            if (shotCooldown > 0) {
+                shotCooldown--;
+            }
+
 
             // 敵出現
             enemySpawnTimer++;
