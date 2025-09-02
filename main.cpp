@@ -240,7 +240,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             break;
 
         case OVER:
-            if (keys[DIK_SPACE]) {
+            if (keys[DIK_RETURN]) {
                 scene = TITLE;
             }
             break;
@@ -308,6 +308,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             }
             // 残りライフ
             Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
+            for (auto& b : bullets) {
+                Novice::ScreenPrintf(20, 40, "speed: %d", b.speed);
+            }
 
             break;
 
