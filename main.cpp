@@ -14,6 +14,8 @@ struct Player {
     Vector2 pos;
     float radius;
     int speed;
+    int shotLevel; // ショット段階（初期1、アイテムで増える）
+
 };
 
 // 弾
@@ -40,6 +42,7 @@ struct Item {
     int hp;         // 耐久値（弾5発で壊れる）
     bool isAlive;   // 出現中かどうか
     bool isBroken;  // HP0になって取得可能になったか
+    int type;   // 0=弾速アップ, 1=弾数アップ
 };
 
 // シーン
@@ -66,7 +69,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     char preKeys[256] = { 0 };
 
     // プレイヤー初期化
-    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8 };
+    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8,1 };
 
     // 弾リスト
     std::vector<Bullet> bullets;
@@ -128,7 +131,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
             // 弾発射
             if (keys[DIK_SPACE] && shotCooldown == 0) {
-                Bullet b = { {player.pos.x, player.pos.y}, 8.0f, 15, true };
+                Bullet b = { {player.pos.x, player.pos.y}, 8.0f, 10, true };
                 bullets.push_back(b);
                 // クールタイムを設定（例：10フレームごとに発射可能）
                 shotCooldown = 10;
