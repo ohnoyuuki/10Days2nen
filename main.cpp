@@ -113,6 +113,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
     int itemHandle = Novice::LoadTexture("./Resources/item.png");
 
+    //ステージ
+    int stageHandle = Novice::LoadTexture("./Resources/stage.png");
+
     // プレイヤー移動範囲（左右の壁）
     int minX = 360;
     int maxX = 920;
