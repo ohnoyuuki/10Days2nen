@@ -100,8 +100,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int powerUpLevel = 0;           // 連射速度強化のレベル
     int mahoudanHandle = Novice::LoadTexture("./Resources/mahoudan.png"); // 魔法弾画像
 
-    // 敵管理
-    std::vector<Enemy> enemies;
+    //ゴブリン管理
+    std::vector<Enemy> goburins;
     int enemySpawnTimer = 0;        // 敵出現までのタイマー
     int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
     int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
@@ -134,7 +134,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     // ゲーム初期化処理を関数として定義
     auto initGame = [&]() {
         bullets.clear();
-        enemies.clear();
+        goburins.clear();
         lives = 20;
         player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
         gameTimer = 0;
@@ -233,11 +233,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 int enemyInitialHP = (timeInSeconds <= 10) ? 1 : 1 + (timeInSeconds / 10) * 5;
 
                 Enemy e = { {(float)(safeMinX + rand() % safeRange), 0.0f}, enemyRadius, 2, true, enemyInitialHP };
-                enemies.push_back(e);
+                goburins.push_back(e);
             }
 
             // 敵の移動処理
-            for (auto& e : enemies) {
+            for (auto& e : goburins) {
                 if (e.isAlive) {
                     e.pos.y += e.speed;
                     // 防衛ラインを超えたらライフ減少
@@ -291,7 +291,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                             break;
                         }
                     }
-                    for (const auto& existingE : enemies) {
+                    for (const auto& existingE : goburins) {
                         if (IsTooClose(p.pos, p.radius, existingE.pos, existingE.radius)) {
                             spawnable = false;
                             break;
@@ -326,7 +326,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                             break;
                         }
                     }
-                    for (const auto& existingE : enemies) {
+                    for (const auto& existingE : goburins) {
                         if (IsTooClose(s.pos, s.radius, existingE.pos, existingE.radius)) {
                             spawnable = false;
                             break;
@@ -344,7 +344,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 if (!b.isAlive) continue;
 
                 // 敵との衝突
-                for (auto& e : enemies) {
+                for (auto& e : goburins) {
                     if (!e.isAlive) continue;
                     float dx = b.pos.x - e.pos.x;
                     float dy = b.pos.y - e.pos.y;
@@ -407,9 +407,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) {
                 return !b.isAlive;
                 }), bullets.end());
-            enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const Enemy& e) {
+            goburins.erase(std::remove_if(goburins.begin(), goburins.end(), [](const Enemy& e) {
                 return !e.isAlive;
-                }), enemies.end());
+                }), goburins.end());
             powerUps.erase(std::remove_if(powerUps.begin(), powerUps.end(), [](const PowerUp& p) {
                 return !p.isAlive;
                 }), powerUps.end());
@@ -468,8 +468,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                     Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, mahoudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
                 }
             }
-            // 敵描画
-            for (auto& e : enemies) {
+            // ゴブリン描画
+            for (auto& e : goburins) {
                 if (e.isAlive) {
                     Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
