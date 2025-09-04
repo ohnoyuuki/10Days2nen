@@ -1,6 +1,7 @@
 #include <Novice.h>
 #include <vector>
 #include <cmath>
+#include <algorithm> // for std::remove_if
 
 const char kWindowTitle[] = "境界を守れ！";
 
@@ -89,7 +90,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     char preKeys[256] = { 0 };
 
     // プレイヤー初期化（画面下中央に配置）
-    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8, 0, 0 };
+    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 48.0f, 8, 0, 0 };
     int playerHandle = Novice::LoadTexture("./Resources/player.png");
 
     // 弾管理
@@ -97,7 +98,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int shotCooldown = 0;           // 次の弾が撃てるまでの待ち時間
     int defaultShotCooldown = 15;   // 連射速度の基準値
     int powerUpLevel = 0;           // 連射速度強化のレベル
-    int mahoudanHandle = Novice::LoadTexture("./Resources/mahoudan.png"); // 魔法弾画像（未使用？）
+    int mahoudanHandle = Novice::LoadTexture("./Resources/mahoudan.png"); // 魔法弾画像
 
     // 敵管理
     std::vector<Enemy> enemies;
@@ -106,24 +107,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
     // アイテム管理
-    std::vector<PowerUp> powerUps;            // 連射速度アップ
+    std::vector<PowerUp> powerUps;         // 連射速度アップ
     std::vector<ShotgunPowerUp> shotgunPowerUps; // ショットガン化
     int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
     int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
     int itemHandle = Novice::LoadTexture("./Resources/item.png");
-
-    //ステージ
-    int stageHandle = Novice::LoadTexture("./Resources/stage.png");
 
     // プレイヤー移動範囲（左右の壁）
     int minX = 360;
     int maxX = 920;
     int range = maxX - minX;
 
+    // アイテムの出現範囲
+    int minItemX = minX + 100;
+    int maxItemX = maxX - 100;
+    int itemRange = maxItemX - minItemX;
+
     // ゲーム制限時間
     int gameTimer = 0;              // 経過フレーム
     const int framePerSecond = 60; // FPS
     const int totalTime = 60 * framePerSecond; // 60秒（クリア条件）
+
+    // ゲーム初期化処理を関数として定義
+    auto initGame = [&]() {
+        bullets.clear();
+        enemies.clear();
+        lives = 20;
+        player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
+        gameTimer = 0;
+        shotCooldown = 0;
+        powerUpSpawnTimer = 0;
+        shotgunPowerUpSpawnTimer = 0;
+        powerUps.clear();
+        shotgunPowerUps.clear();
+        defaultShotCooldown = 15;
+        powerUpLevel = 0;
+        player.shotgunLevel = 0;
+        player.shotgunTimer = 0;
+        };
+    initGame(); // 初回起動時に初期化
 
     // メインループ
     while (Novice::ProcessMessage() == 0) {
@@ -145,22 +167,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
         case EXPLANATION: // 操作説明画面
             if (keys[DIK_SPACE]) {
-                // ゲーム開始時の初期化
                 scene = GAME;
-                bullets.clear();
-                enemies.clear();
-                lives = 20;
-                player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
-                gameTimer = 0;
-                shotCooldown = 0;
-                powerUpSpawnTimer = 0;
-                shotgunPowerUpSpawnTimer = 0;
-                powerUps.clear();
-                shotgunPowerUps.clear();
-                defaultShotCooldown = 15;
-                powerUpLevel = 0;
-                player.shotgunLevel = 0;
-                player.shotgunTimer = 0;
+                initGame(); // ゲーム開始時に毎回初期化
             }
             break;
 
@@ -185,15 +193,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             if (keys[DIK_SPACE] && shotCooldown == 0) {
                 if (player.shotgunLevel == 0) {
                     // 通常弾
-                    bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {0.0f, -1.0f}, true }); // 変更点：半径を 1.0f に
+                    bullets.push_back({ {player.pos.x + 16, player.pos.y}, 16.0f, 15, {0.0f, -1.0f}, true });
                 } else {
                     // ショットガン（複数方向に発射）
-                    float angleIncrement = 0.3f;
-                    bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {0.0f, -1.0f}, true }); // 変更点：半径を 1.0f に
-                    for (int i = 1; i <= player.shotgunLevel; ++i) {
+                    float angleIncrement = 0.15f;
+                    for (int i = -player.shotgunLevel; i <= player.shotgunLevel; ++i) {
                         float angle = angleIncrement * i;
-                        bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, { angle, -1.0f}, true }); // 変更点：半径を 1.0f に
-                        bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {-angle, -1.0f}, true }); // 変更点：半径を 1.0f に
+                        bullets.push_back({ {player.pos.x + 16, player.pos.y}, 16.0f, 15, {sinf(angle), -cosf(angle)}, true });
                     }
                 }
                 // クールダウン設定（連射速度に影響）
@@ -214,8 +220,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             enemySpawnTimer++;
             if (enemySpawnTimer > 60) { // 1秒ごとに出現
                 enemySpawnTimer = 0;
-                float enemyRadius = 20.0f;
-
+                float enemyRadius = 32.0f;
                 // 出現位置をランダムに決定
                 int safeMinX = minX + (int)player.radius;
                 int safeRange = range - (int)(player.radius * 2);
@@ -241,16 +246,34 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 }
             }
 
-            // アイテム出現（連射速度アップ：5秒ごと）
+            // アイテムの移動処理と非アクティブ化
+            for (auto& p : powerUps) {
+                if (p.isAlive) {
+                    p.pos.y += p.speed;
+                    // 画面下端に出たら非アクティブ化
+                    if (p.pos.y > kWindowHeight) {
+                        p.isAlive = false;
+                    }
+                }
+            }
+            for (auto& s : shotgunPowerUps) {
+                if (s.isAlive) {
+                    s.pos.y += s.speed;
+                    // 画面下端に出たら非アクティブ化
+                    if (s.pos.y > kWindowHeight) {
+                        s.isAlive = false;
+                    }
+                }
+            }
+
+            // アイテム出現処理（連射速度アップ）
             powerUpSpawnTimer++;
             if (powerUpSpawnTimer >= 5 * framePerSecond) {
-                powerUpSpawnTimer = 0;
-                PowerUp p = { {0.0f, 0.0f}, 15.0f, 3, true, 3 };
-                // 配置場所が他と近すぎないか確認
+                PowerUp p = { {0.0f, 0.0f}, 50.0f, 3, true, 3 };
                 bool spawnable = false;
-                int maxAttempts = 10;
+                int maxAttempts = 50;
                 for (int i = 0; i < maxAttempts; ++i) {
-                    float newX = (float)(minX + rand() % range);
+                    float newX = (float)(minItemX + rand() % itemRange);
                     p.pos = { newX, 0.0f };
                     spawnable = true;
                     for (const auto& existingP : powerUps) {
@@ -265,20 +288,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                             break;
                         }
                     }
+                    for (const auto& existingE : enemies) {
+                        if (IsTooClose(p.pos, p.radius, existingE.pos, existingE.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
                     if (spawnable) break;
                 }
                 if (spawnable) powerUps.push_back(p);
+                // タイマーをゼロにリセット
+                powerUpSpawnTimer = 0;
             }
 
-            // アイテム出現（ショットガン化：10秒ごと）
+            // アイテム出現処理（ショットガン化）
             shotgunPowerUpSpawnTimer++;
             if (shotgunPowerUpSpawnTimer >= 10 * framePerSecond) {
-                shotgunPowerUpSpawnTimer = 0;
-                ShotgunPowerUp s = { {0.0f, 0.0f}, 15.0f, 3, true, 5 };
+                ShotgunPowerUp s = { {0.0f, 0.0f}, 50.0f, 3, true, 5 };
                 bool spawnable = false;
-                int maxAttempts = 10;
+                int maxAttempts = 50;
                 for (int i = 0; i < maxAttempts; ++i) {
-                    float newX = (float)(minX + rand() % range);
+                    float newX = (float)(minItemX + rand() % itemRange);
                     s.pos = { newX, 0.0f };
                     spawnable = true;
                     for (const auto& existingP : powerUps) {
@@ -293,14 +323,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                             break;
                         }
                     }
+                    for (const auto& existingE : enemies) {
+                        if (IsTooClose(s.pos, s.radius, existingE.pos, existingE.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
                     if (spawnable) break;
                 }
                 if (spawnable) shotgunPowerUps.push_back(s);
+                // タイマーをゼロにリセット
+                shotgunPowerUpSpawnTimer = 0;
             }
-
-            // アイテムの移動処理
-            for (auto& p : powerUps) if (p.isAlive) p.pos.y += p.speed;
-            for (auto& s : shotgunPowerUps) if (s.isAlive) s.pos.y += s.speed;
 
             // 弾と敵・アイテムの当たり判定
             for (auto& b : bullets) {
@@ -366,14 +400,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                 }
             }
 
+            // 不要になったオブジェクトをvectorから削除（ガベージコレクション）
+            bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) {
+                return !b.isAlive;
+                }), bullets.end());
+            enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const Enemy& e) {
+                return !e.isAlive;
+                }), enemies.end());
+            powerUps.erase(std::remove_if(powerUps.begin(), powerUps.end(), [](const PowerUp& p) {
+                return !p.isAlive;
+                }), powerUps.end());
+            shotgunPowerUps.erase(std::remove_if(shotgunPowerUps.begin(), shotgunPowerUps.end(), [](const ShotgunPowerUp& s) {
+                return !s.isAlive;
+                }), shotgunPowerUps.end());
+
         } break;
 
         case CLEAR: // ゲームクリア
+            if (keys[DIK_RETURN]) {
+                scene = TITLE;
+                initGame();
+            }
             break;
 
         case OVER: // ゲームオーバー
             if (keys[DIK_RETURN]) {
-                scene = TITLE; // リトライでタイトルへ
+                scene = TITLE;
+                initGame();
             }
             break;
         }
@@ -399,17 +452,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             break;
 
         case GAME:
-            //ステージ
-            Novice::DrawSprite(0,0,stageHandle,1.0f,1.0f,0.0f,WHITE);
-            
-            //// 防衛ライン
-            //Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
+            // 防衛ライン
+            Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
             // プレイヤー描画
-            Novice::DrawSprite((int)player.pos.x, (int)player.pos.y,playerHandle, 1.0f,1.0f, 0.0f, WHITE);
+            Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
             // 弾描画
             for (auto& b : bullets) {
                 if (b.isAlive) {
-                    Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, mahoudanHandle, 1.0f, 1.0f, 0.0f, WHITE); // 変更点：描画スケールを 1.0f に
+                    Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, mahoudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
                 }
             }
             // 敵描画
@@ -422,7 +472,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 連射速度アップアイテム描画
             for (auto& p : powerUps) {
                 if (p.isAlive) {
-                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.6f, 0.5f,0.0f, WHITE);
+                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
                 }
             }
@@ -438,19 +488,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
             Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
             Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
-           /* Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
-            Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);*/
+            Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
+            Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
             break;
 
         case CLEAR:
             Novice::ScreenPrintf(500, 400, "CLEAR!");
             Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+            Novice::ScreenPrintf(500, 500, "Press ENTER to return to title");
             break;
 
         case OVER:
             Novice::ScreenPrintf(500, 400, "GAME OVER");
             Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
-            Novice::ScreenPrintf(500, 500, "Press SPACE to Retry");
+            Novice::ScreenPrintf(500, 500, "Press ENTER to return to title");
             break;
         }
 
