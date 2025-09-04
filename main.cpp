@@ -102,7 +102,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     std::vector<Enemy> enemies;
     int enemySpawnTimer = 0;        // 敵出現までのタイマー
     int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
-    int goburinHandle = Novice::LoadTexture("./Resources/mahoudan.png");
+    int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
     // アイテム管理
     std::vector<PowerUp> powerUps;            // 連射速度アップ
