@@ -102,6 +102,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     std::vector<Enemy> enemies;
     int enemySpawnTimer = 0;        // 敵出現までのタイマー
     int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
+    int goburinHandle = Novice::LoadTexture("./Resources/mahoudan.png");
 
     // アイテム管理
     std::vector<PowerUp> powerUps;            // 連射速度アップ
@@ -406,7 +407,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 敵描画
             for (auto& e : enemies) {
                 if (e.isAlive) {
-                    Novice::DrawEllipse((int)e.pos.x, (int)e.pos.y, (int)e.radius, (int)e.radius, 0.0f, RED, kFillModeSolid);
+                    Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
                 }
             }
