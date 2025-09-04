@@ -1,56 +1,61 @@
 #include <Novice.h>
 #include <vector>
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
 
 const char kWindowTitle[] = "境界を守れ！";
-const float kPi = 3.14159265f;
 
-// 2Dベクトル
+// 2Dベクトル構造体
 struct Vector2 {
     float x;
     float y;
 };
 
-// プレイヤー
+// プレイヤー情報
 struct Player {
-    Vector2 pos;
-    float radius;
-    int speed;
-    int shotLevel;     // 発射弾数レベル（無限増加可）
-    float bulletSpeed; // 新しく作る弾の速度（アイテムで増やす）
+    Vector2 pos;        // 位置
+    float radius;       // 半径（当たり判定用）
+    int speed;          // 移動速度
+    int shotgunLevel;   // ショットガンのレベル（弾数が増える）
+    int shotgunTimer;   // ショットガン効果の残り時間（フレーム単位）
 };
 
-// 弾（角度を持つ）
+// 弾の情報
 struct Bullet {
-    Vector2 pos;
-    float radius;
-    float speed;
-    bool isAlive;
-    float angle; // 発射角度（度数法）
+    Vector2 pos;        // 位置
+    float radius;       // 半径（当たり判定用）
+    int speed;          // 移動速度
+    Vector2 direction;  // 移動方向（正規化ベクトル）
+    bool isAlive;       // 生存フラグ（trueなら画面内で存在している）
 };
 
-// 敵
+// 敵の情報
 struct Enemy {
+    Vector2 pos;        // 位置
+    float radius;       // 半径（当たり判定用）
+    int speed;          // 移動速度
+    bool isAlive;       // 生存フラグ
+    int hp;             // 体力
+};
+
+// 連射速度アップアイテム
+struct PowerUp {
     Vector2 pos;
     float radius;
     int speed;
     bool isAlive;
+    int hp;             // 壊すためのHP
 };
 
-// アイテム
-struct Item {
+// 弾数増加（ショットガン化）アイテム
+struct ShotgunPowerUp {
     Vector2 pos;
     float radius;
     int speed;
-    int hp;         // 耐久値（弾5発で壊れる）
-    bool isAlive;   // 出現中かどうか
-    bool isBroken;  // HP0になって取得可能になったか
-    int type;       // 0=弾速アップ, 1=弾数アップ(無制限)
+    bool isAlive;
+    int hp;             // 壊すためのHP
 };
 
-// シーン
+// シーン管理（タイトル・説明・ゲーム本編・クリア・ゲームオーバー）
 enum Scene {
     TITLE,
     EXPLANATION,
@@ -61,152 +66,247 @@ enum Scene {
 
 int scene = TITLE;
 
+// 2つのオブジェクトが近すぎるかどうかを判定する関数
+bool IsTooClose(const Vector2& pos1, float radius1, const Vector2& pos2, float radius2) {
+    float dx = pos1.x - pos2.x;
+    float dy = pos1.y - pos2.y;
+    float distance = sqrtf(dx * dx + dy * dy);
+    // 半径の合計 + 余白50以内なら「近すぎる」と判定
+    return distance < (radius1 + radius2 + 50.0f);
+}
+
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
+    // ウィンドウサイズ
     const int kWindowWidth = 1280;
     const int kWindowHeight = 720;
 
-    // ライブラリの初期化
+    // Noviceライブラリ初期化
     Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
-    // 乱数初期化
-    std::srand((unsigned int)std::time(nullptr));
-
-    // キー入力
+    // キー入力管理
     char keys[256] = { 0 };
     char preKeys[256] = { 0 };
 
-    // プレイヤー初期化
-    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8, 1, 10.0f };
+    // プレイヤー初期化（画面下中央に配置）
+    Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8, 0, 0 };
+    int playerHandle = Novice::LoadTexture("./Resources/player.png");
 
-    // 弾リスト
-    std::vector<Bullet> bullets;
-    // 発射間隔を管理する変数
-    int shotCooldown = 0;
+    // 弾管理
+    std::vector<Bullet> bullets;    // 発射された弾リスト
+    int shotCooldown = 0;           // 次の弾が撃てるまでの待ち時間
+    int defaultShotCooldown = 15;   // 連射速度の基準値
+    int powerUpLevel = 0;           // 連射速度強化のレベル
+    int mahoudanHandle = Novice::LoadTexture("./Resources/mahoudan.png"); // 魔法弾画像（未使用？）
 
-    //アイテムリスト
-    std::vector<Item> items;
-    int itemSpawnTimer = 0;
-
-    // 敵リスト
+    // 敵管理
     std::vector<Enemy> enemies;
-    int enemySpawnTimer = 0;
-    int lives = 5;  // 境界を超えられる回数
+    int enemySpawnTimer = 0;        // 敵出現までのタイマー
+    int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
+    int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
-    int minX = 400;   // 出現範囲の左端
-    int maxX = 800;   // 出現範囲の右端
+    // アイテム管理
+    std::vector<PowerUp> powerUps;            // 連射速度アップ
+    std::vector<ShotgunPowerUp> shotgunPowerUps; // ショットガン化
+    int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
+    int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
+    int itemHandle = Novice::LoadTexture("./Resources/item.png");
+
+    //ステージ
+    int stageHandle = Novice::LoadTexture("./Resources/stage.png");
+
+    // プレイヤー移動範囲（左右の壁）
+    int minX = 360;
+    int maxX = 920;
     int range = maxX - minX;
+
+    // ゲーム制限時間
+    int gameTimer = 0;              // 経過フレーム
+    const int framePerSecond = 60; // FPS
+    const int totalTime = 60 * framePerSecond; // 60秒（クリア条件）
 
     // メインループ
     while (Novice::ProcessMessage() == 0) {
         Novice::BeginFrame();
 
+        // キー入力更新
         memcpy(preKeys, keys, 256);
         Novice::GetHitKeyStateAll(keys);
 
-        ///
-        /// ↓ 更新処理 ↓
-        ///
+        /// ====================
+        /// 更新処理
+        /// ====================
         switch (scene) {
-        case TITLE:
+        case TITLE: // タイトル画面
             if (keys[DIK_SPACE]) {
-                scene = EXPLANATION;
+                scene = EXPLANATION; // スペースキーで説明画面へ
             }
             break;
 
-        case EXPLANATION:
+        case EXPLANATION: // 操作説明画面
             if (keys[DIK_SPACE]) {
-                // ゲーム開始
+                // ゲーム開始時の初期化
                 scene = GAME;
                 bullets.clear();
                 enemies.clear();
-                items.clear();
-                lives = 5;
+                lives = 20;
                 player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
-                player.shotLevel = 1;
-                player.bulletSpeed = 10.0f;
-            }
-            if(keys[DIK_BACKSPACE]){
-                scene = TITLE;
+                gameTimer = 0;
+                shotCooldown = 0;
+                powerUpSpawnTimer = 0;
+                shotgunPowerUpSpawnTimer = 0;
+                powerUps.clear();
+                shotgunPowerUps.clear();
+                defaultShotCooldown = 15;
+                powerUpLevel = 0;
+                player.shotgunLevel = 0;
+                player.shotgunTimer = 0;
             }
             break;
 
         case GAME: {
-            // プレイヤー移動
-            if (keys[DIK_A]) {
-                player.pos.x -= player.speed;
-            }
-            if (keys[DIK_D]) {
-                player.pos.x += player.speed;
-            }
-            if (player.pos.x < 0) player.pos.x = 0;
-            if (player.pos.x > kWindowWidth) player.pos.x = (float)kWindowWidth;
-
-            // クールタイム減少
-            if (shotCooldown > 0) {
-                shotCooldown--;
+            // ゲーム時間経過
+            gameTimer++;
+            if (gameTimer >= totalTime) {
+                scene = CLEAR; // 制限時間を耐えればクリア
             }
 
-            // 弾発射（扇状）
+            // プレイヤー操作（AとDキーで左右移動）
+            if (keys[DIK_A]) { player.pos.x -= player.speed; }
+            if (keys[DIK_D]) { player.pos.x += player.speed; }
+
+            // プレイヤーの移動制限（画面外に出ないように）
+            float minPlayerX = minX + player.radius;
+            float maxPlayerX = maxX - player.radius;
+            if (player.pos.x < minPlayerX) player.pos.x = minPlayerX;
+            if (player.pos.x > maxPlayerX) player.pos.x = maxPlayerX;
+
+            // 弾発射（スペースキー）
             if (keys[DIK_SPACE] && shotCooldown == 0) {
-                int n = player.shotLevel;  // 発射弾数
-                float angleRange = 60.0f;  // 扇の広がり角度（度）
-                float baseAngle = -90.0f;  // 上方向を基準（yが下方向の座標系なので -90 = 真上）
-
-                if (n <= 1) {
-                    // 1発のときは中央に撃つ
-                    bullets.push_back({ {player.pos.x, player.pos.y}, 8.0f, player.bulletSpeed, true, baseAngle });
+                if (player.shotgunLevel == 0) {
+                    // 通常弾
+                    bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {0.0f, -1.0f}, true }); // 変更点：半径を 1.0f に
                 } else {
-                    for (int i = 0; i < n; i++) {
-                        // 弾ごとの角度を計算（等間隔）
-                        float angle = baseAngle - angleRange / 2.0f + angleRange * i / (float)(n - 1);
-                        bullets.push_back({ {player.pos.x, player.pos.y}, 8.0f, player.bulletSpeed, true, angle });
+                    // ショットガン（複数方向に発射）
+                    float angleIncrement = 0.3f;
+                    bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {0.0f, -1.0f}, true }); // 変更点：半径を 1.0f に
+                    for (int i = 1; i <= player.shotgunLevel; ++i) {
+                        float angle = angleIncrement * i;
+                        bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, { angle, -1.0f}, true }); // 変更点：半径を 1.0f に
+                        bullets.push_back({ {player.pos.x, player.pos.y}, 1.0f, 15, {-angle, -1.0f}, true }); // 変更点：半径を 1.0f に
                     }
                 }
-
-                // クールタイム（発射間隔）
-                shotCooldown = 10;
+                // クールダウン設定（連射速度に影響）
+                shotCooldown = defaultShotCooldown;
             }
+            if (shotCooldown > 0) shotCooldown--;
 
-            // 弾更新
+            // 弾の移動処理
             for (auto& b : bullets) {
                 if (b.isAlive) {
-                    float rad = b.angle * kPi / 180.0f;
-                    b.pos.x += cosf(rad) * b.speed;
-                    b.pos.y += sinf(rad) * b.speed;
-
-                    // 画面外に出たら無効化
-                    if (b.pos.x < 0 || b.pos.x > kWindowWidth || b.pos.y < 0 || b.pos.y > kWindowHeight) {
-                        b.isAlive = false;
-                    }
+                    b.pos.x += b.direction.x * b.speed;
+                    b.pos.y += b.direction.y * b.speed;
+                    if (b.pos.y < 0) b.isAlive = false; // 画面外に出たら消える
                 }
             }
 
-            // 敵出現
+            // 敵の出現処理
             enemySpawnTimer++;
-            if (enemySpawnTimer > 60) {
+            if (enemySpawnTimer > 60) { // 1秒ごとに出現
                 enemySpawnTimer = 0;
-                Enemy e = { {(float)(minX + rand() % range), 0}, 20.0f, 4, true };
+                float enemyRadius = 20.0f;
+
+                // 出現位置をランダムに決定
+                int safeMinX = minX + (int)player.radius;
+                int safeRange = range - (int)(player.radius * 2);
+
+                // 経過時間によって敵の体力を上げる
+                int timeInSeconds = gameTimer / framePerSecond;
+                int enemyInitialHP = (timeInSeconds <= 10) ? 1 : 1 + (timeInSeconds / 10) * 5;
+
+                Enemy e = { {(float)(safeMinX + rand() % safeRange), 0.0f}, enemyRadius, 2, true, enemyInitialHP };
                 enemies.push_back(e);
             }
 
-            // 敵更新
+            // 敵の移動処理
             for (auto& e : enemies) {
                 if (e.isAlive) {
                     e.pos.y += e.speed;
+                    // 防衛ラインを超えたらライフ減少
                     if (e.pos.y > kWindowHeight - 200) {
                         e.isAlive = false;
                         lives--;
-                        if (lives <= 0) {
-                            scene = OVER;
-                        }
+                        if (lives <= 0) scene = OVER;
                     }
                 }
             }
 
-            // 衝突判定（弾と敵）
+            // アイテム出現（連射速度アップ：5秒ごと）
+            powerUpSpawnTimer++;
+            if (powerUpSpawnTimer >= 5 * framePerSecond) {
+                powerUpSpawnTimer = 0;
+                PowerUp p = { {0.0f, 0.0f}, 15.0f, 3, true, 3 };
+                // 配置場所が他と近すぎないか確認
+                bool spawnable = false;
+                int maxAttempts = 10;
+                for (int i = 0; i < maxAttempts; ++i) {
+                    float newX = (float)(minX + rand() % range);
+                    p.pos = { newX, 0.0f };
+                    spawnable = true;
+                    for (const auto& existingP : powerUps) {
+                        if (IsTooClose(p.pos, p.radius, existingP.pos, existingP.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
+                    for (const auto& existingS : shotgunPowerUps) {
+                        if (IsTooClose(p.pos, p.radius, existingS.pos, existingS.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
+                    if (spawnable) break;
+                }
+                if (spawnable) powerUps.push_back(p);
+            }
+
+            // アイテム出現（ショットガン化：10秒ごと）
+            shotgunPowerUpSpawnTimer++;
+            if (shotgunPowerUpSpawnTimer >= 10 * framePerSecond) {
+                shotgunPowerUpSpawnTimer = 0;
+                ShotgunPowerUp s = { {0.0f, 0.0f}, 15.0f, 3, true, 5 };
+                bool spawnable = false;
+                int maxAttempts = 10;
+                for (int i = 0; i < maxAttempts; ++i) {
+                    float newX = (float)(minX + rand() % range);
+                    s.pos = { newX, 0.0f };
+                    spawnable = true;
+                    for (const auto& existingP : powerUps) {
+                        if (IsTooClose(s.pos, s.radius, existingP.pos, existingP.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
+                    for (const auto& existingS : shotgunPowerUps) {
+                        if (IsTooClose(s.pos, s.radius, existingS.pos, existingS.radius)) {
+                            spawnable = false;
+                            break;
+                        }
+                    }
+                    if (spawnable) break;
+                }
+                if (spawnable) shotgunPowerUps.push_back(s);
+            }
+
+            // アイテムの移動処理
+            for (auto& p : powerUps) if (p.isAlive) p.pos.y += p.speed;
+            for (auto& s : shotgunPowerUps) if (s.isAlive) s.pos.y += s.speed;
+
+            // 弾と敵・アイテムの当たり判定
             for (auto& b : bullets) {
                 if (!b.isAlive) continue;
+
+                // 敵との衝突
                 for (auto& e : enemies) {
                     if (!e.isAlive) continue;
                     float dx = b.pos.x - e.pos.x;
@@ -214,85 +314,76 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
                     float dist = sqrtf(dx * dx + dy * dy);
                     if (dist < b.radius + e.radius) {
                         b.isAlive = false;
-                        e.isAlive = false;
+                        e.hp--;
+                        if (e.hp <= 0) e.isAlive = false;
                     }
                 }
-            }
 
-            // アイテム出現
-            itemSpawnTimer++;
-            if (itemSpawnTimer > 300) { // 5秒に1回くらい
-                itemSpawnTimer = 0;
-                int itemType = rand() % 2; // 0=弾速アップ,1=弾数アップ
-                Item item = { {(float)(minX + rand() % range), 0}, 25.0f, 2, 5, true, false, itemType };
-                items.push_back(item);
-            }
-
-            // アイテム更新（HP残っていても動く。境界で消える）
-            for (auto& it : items) {
-                if (it.isAlive) {
-                    it.pos.y += it.speed;
-                    if (it.pos.y > kWindowHeight - 0) {
-                        it.isAlive = false;
-                    }
-                }
-            }
-
-            // 弾とアイテムの当たり判定（壊す）
-            for (auto& b : bullets) {
-                if (!b.isAlive) continue;
-                for (auto& it : items) {
-                    if (!it.isAlive || it.isBroken) continue;
-                    float dx = b.pos.x - it.pos.x;
-                    float dy = b.pos.y - it.pos.y;
+                // 連射速度アップアイテムとの衝突
+                for (auto& p : powerUps) {
+                    if (!p.isAlive) continue;
+                    float dx = b.pos.x - p.pos.x;
+                    float dy = b.pos.y - p.pos.y;
                     float dist = sqrtf(dx * dx + dy * dy);
-                    if (dist < b.radius + it.radius) {
+                    if (dist < b.radius + p.radius) {
                         b.isAlive = false;
-                        it.hp--;
-                        if (it.hp <= 0) {
-                            it.isBroken = true; // 取得可能状態へ
+                        p.hp--;
+                        if (p.hp <= 0) {
+                            p.isAlive = false;
+                            // レベルに応じて連射速度を短縮
+                            powerUpLevel++;
+                            if (powerUpLevel == 1) defaultShotCooldown = 10;
+                            else if (powerUpLevel == 2) defaultShotCooldown = 8;
+                            else if (powerUpLevel == 3) defaultShotCooldown = 6;
+                            else defaultShotCooldown = 4;
+                        }
+                    }
+                }
+
+                // ショットガンアイテムとの衝突
+                for (auto& s : shotgunPowerUps) {
+                    if (!s.isAlive) continue;
+                    float dx = b.pos.x - s.pos.x;
+                    float dy = b.pos.y - s.pos.y;
+                    float dist = sqrtf(dx * dx + dy * dy);
+                    if (dist < b.radius + s.radius) {
+                        b.isAlive = false;
+                        s.hp--;
+                        if (s.hp <= 0) {
+                            s.isAlive = false;
+                            player.shotgunLevel++;
+                            player.shotgunTimer = 6 * framePerSecond; // 効果6秒間
                         }
                     }
                 }
             }
 
-            // プレイヤーとアイテムの当たり判定（取得）
-            for (auto& it : items) {
-                if (!it.isAlive || !it.isBroken) continue;
-                float dx = player.pos.x - it.pos.x;
-                float dy = player.pos.y - it.pos.y;
-                float dist = sqrtf(dx * dx + dy * dy);
-                if (dist < player.radius + it.radius) {
-                    it.isAlive = false; // 消える
-
-                    if (it.type == 0) {
-                        // 弾速アップ：既存の弾にも、新しい弾にも効果を与える
-                        player.bulletSpeed += 5.0f;
-                        for (auto& b : bullets) {
-                            if (b.isAlive) b.speed += 5.0f;
-                        }
-                    } else if (it.type == 1) {
-                        // 弾数アップ（無制限で増える）
-                        player.shotLevel++;
-                    }
+            // ショットガン効果時間を減らす
+            if (player.shotgunTimer > 0) {
+                player.shotgunTimer--;
+                if (player.shotgunTimer <= 0) {
+                    player.shotgunLevel = 0; // 効果終了
                 }
             }
 
         } break;
 
-        case CLEAR:
+        case CLEAR: // ゲームクリア
             break;
 
-        case OVER:
+        case OVER: // ゲームオーバー
             if (keys[DIK_RETURN]) {
-                scene = TITLE;
+                scene = TITLE; // リトライでタイトルへ
             }
             break;
         }
 
-        ///
-        /// ↓ 描画処理 ↓
-        ///
+        /// ====================
+        /// 描画処理
+        /// ====================
+        int elapsedMinutes = gameTimer / framePerSecond / 60;
+        int elapsedSeconds = gameTimer / framePerSecond % 60;
+
         switch (scene) {
         case TITLE:
             Novice::ScreenPrintf(500, 300, "境界を守れ！");
@@ -302,81 +393,72 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         case EXPLANATION:
             Novice::ScreenPrintf(400, 300, "ルール説明:");
             Novice::ScreenPrintf(400, 340, "・A/Dキーで移動");
-            Novice::ScreenPrintf(400, 380, "・SPACEで弾を撃つ（長押し可）");
-            Novice::ScreenPrintf(400, 420, "・敵が境界(画面下)を超えないよう守ろう！");
+            Novice::ScreenPrintf(400, 380, "・SPACEで弾を撃つ");
+            Novice::ScreenPrintf(400, 420, "・敵が境界(画面中央の白線)を超えないよう守ろう！");
             Novice::ScreenPrintf(400, 500, "Press SPACE to Play");
             break;
 
         case GAME:
-            // 境界線
-            Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
-            Novice::DrawLine(400, 0, 400, kWindowHeight, WHITE);
-            Novice::DrawLine(800, 0, 800, kWindowHeight, WHITE);
+            //ステージ
+            Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
-            // プレイヤー
-            Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius,
-                (int)player.radius, 0.0f, BLUE, kFillModeSolid);
-
+            //// 防衛ライン
+            //Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
+            // プレイヤー描画
+            Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
             // 弾描画
             for (auto& b : bullets) {
                 if (b.isAlive) {
-                    Novice::DrawEllipse((int)b.pos.x, (int)b.pos.y, (int)b.radius, (int)b.radius,
-                        0.0f, RED, kFillModeSolid);
+                    Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, mahoudanHandle, 1.0f, 1.0f, 0.0f, WHITE); // 変更点：描画スケールを 1.0f に
                 }
             }
-
             // 敵描画
             for (auto& e : enemies) {
                 if (e.isAlive) {
-                    Novice::DrawEllipse((int)e.pos.x, (int)e.pos.y, (int)e.radius, (int)e.radius,
-                        0.0f, RED, kFillModeSolid);
+                    Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
+                    Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
                 }
             }
-
-            // アイテム描画
-            for (auto& it : items) {
-                if (!it.isAlive) continue;
-
-                unsigned int color;
-                if (!it.isBroken) {
-                    color = (it.type == 0) ? GREEN : BLACK;
-                } else {
-                    color = BLUE; // 取得可能
-                }
-                Novice::DrawEllipse((int)it.pos.x, (int)it.pos.y, (int)it.radius, (int)it.radius,
-                    0.0f, color, kFillModeSolid);
-
-                // HP表示
-                if (!it.isBroken) {
-                    Novice::ScreenPrintf((int)it.pos.x - 10, (int)it.pos.y - 40, "HP:%d", it.hp);
+            // 連射速度アップアイテム描画
+            for (auto& p : powerUps) {
+                if (p.isAlive) {
+                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
+                    Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
                 }
             }
-
-            // UI
+            //弾増加アップアイテム描画
+            for (auto& s : shotgunPowerUps) {
+                if (s.isAlive) {
+                    Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
+                    Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
+                }
+            }
             Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
-            Novice::ScreenPrintf(20, 40, "ShotLevel: %d", player.shotLevel);
-            Novice::ScreenPrintf(20, 60, "BulletSpeed: %.1f", player.bulletSpeed);
-
+            Novice::ScreenPrintf(20, 40, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+            Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
+            Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
+            Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
+            /* Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
+             Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);*/
             break;
 
         case CLEAR:
             Novice::ScreenPrintf(500, 400, "CLEAR!");
+            Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
             break;
 
         case OVER:
             Novice::ScreenPrintf(500, 400, "GAME OVER");
-            Novice::ScreenPrintf(500, 450, "Press SPACE to Retry");
+            Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+            Novice::ScreenPrintf(500, 500, "Press SPACE to Retry");
             break;
         }
 
         Novice::EndFrame();
-
-        // ESCキーで終了
         if (preKeys[DIK_ESCAPE] == 0 && keys[DIK_ESCAPE] != 0) {
             break;
         }
     }
-
     Novice::Finalize();
     return 0;
 }
