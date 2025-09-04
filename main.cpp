@@ -90,6 +90,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     // プレイヤー初期化（画面下中央に配置）
     Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 20.0f, 8, 0, 0 };
+    int playerHandle = Novice::LoadTexture("./Resources/player.png");
 
     // 弾管理
     std::vector<Bullet> bullets;    // 発射された弾リスト
@@ -109,6 +110,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     std::vector<ShotgunPowerUp> shotgunPowerUps; // ショットガン化
     int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
     int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
+    int itemHandle = Novice::LoadTexture("./Resources/item.png");
 
     // プレイヤー移動範囲（左右の壁）
     int minX = 360;
@@ -367,7 +369,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             break;
 
         case OVER: // ゲームオーバー
-            if (keys[DIK_SPACE]) {
+            if (keys[DIK_RETURN]) {
                 scene = TITLE; // リトライでタイトルへ
             }
             break;
@@ -397,7 +399,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 防衛ライン
             Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
             // プレイヤー描画
-            Novice::DrawEllipse((int)player.pos.x, (int)player.pos.y, (int)player.radius, (int)player.radius, 0.0f, BLUE, kFillModeSolid);
+            Novice::DrawSprite((int)player.pos.x, (int)player.pos.y,playerHandle, 1.0f,1.0f, 0.0f, WHITE);
             // 弾描画
             for (auto& b : bullets) {
                 if (b.isAlive) {
@@ -414,13 +416,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 連射速度アップアイテム描画
             for (auto& p : powerUps) {
                 if (p.isAlive) {
-                    Novice::DrawEllipse((int)p.pos.x, (int)p.pos.y, (int)p.radius, (int)p.radius, 0.0f, WHITE, kFillModeSolid);
+                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.6f, 0.5f,0.0f, WHITE);
                     Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
                 }
             }
+            //弾増加アップアイテム描画
             for (auto& s : shotgunPowerUps) {
                 if (s.isAlive) {
-                    Novice::DrawEllipse((int)s.pos.x, (int)s.pos.y, (int)s.radius, (int)s.radius, 0.0f, WHITE, kFillModeSolid);
+                    Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
                 }
             }
