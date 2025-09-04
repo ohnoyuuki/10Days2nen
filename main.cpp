@@ -455,8 +455,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             break;
 
         case GAME:
-            // 防衛ライン
-            Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
+            //ステージ
+            Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
+
+            //// 防衛ライン
+            //Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
             // プレイヤー描画
             Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
             // 弾描画
@@ -491,8 +494,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
             Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
             Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
-            Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
-            Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
+           /* Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
+            Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);*/
             break;
 
         case CLEAR:
