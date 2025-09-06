@@ -163,13 +163,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         /// ====================
         switch (scene) {
         case TITLE: // タイトル画面
-            if (keys[DIK_SPACE]) {
+            if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
                 scene = EXPLANATION; // スペースキーで説明画面へ
             }
             break;
 
         case EXPLANATION: // 操作説明画面
-            if (keys[DIK_SPACE]) {
+            if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
                 scene = GAME;
                 initGame(); // ゲーム開始時に毎回初期化
             }
@@ -420,14 +420,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         } break;
 
         case CLEAR: // ゲームクリア
-            if (keys[DIK_RETURN]) {
+            if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
                 scene = TITLE;
                 initGame();
             }
             break;
 
         case OVER: // ゲームオーバー
-            if (keys[DIK_RETURN]) {
+            if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
                 scene = TITLE;
                 initGame();
             }
