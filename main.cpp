@@ -478,14 +478,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 連射速度アップアイテム描画
             for (auto& p : powerUps) {
                 if (p.isAlive) {
-                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
+                    Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
                 }
             }
             //弾増加アップアイテム描画
             for (auto& s : shotgunPowerUps) {
                 if (s.isAlive) {
-                    Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.6f, 0.5f, 0.0f, WHITE);
+                    Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
                     Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
                 }
             }
