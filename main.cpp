@@ -457,11 +457,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case EXPLANATION:
-			Novice::ScreenPrintf(400, 300, "ルール説明:");
-			Novice::ScreenPrintf(400, 340, "・A/Dキーで移動");
-			Novice::ScreenPrintf(400, 380, "・SPACEで弾を撃つ");
-			Novice::ScreenPrintf(400, 420, "・敵が境界(画面中央の白線)を超えないよう守ろう！");
-			Novice::ScreenPrintf(400, 500, "Press ENTER to Play");
+			//Novice::ScreenPrintf(400, 300, "ルール説明:");
+			//Novice::ScreenPrintf(400, 340, "・A/Dキーで移動");
+			//Novice::ScreenPrintf(400, 380, "・SPACEで弾を撃つ");
+			//Novice::ScreenPrintf(400, 420, "・敵が境界(画面中央の白線)を超えないよう守ろう！");
+			Novice::ScreenPrintf(400, 500, "choose a stage");
+			Novice::ScreenPrintf(400, 520, "press 1 to start ");
+			Novice::ScreenPrintf(400, 540, "press 2 to start ");
+			Novice::ScreenPrintf(400, 560, "press 3 to start");
 			break;
 
 		case GAME1://ステージ１
