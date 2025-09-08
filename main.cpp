@@ -119,8 +119,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
 	//ゲームクリア
-
+	int clearHandle = Novice::LoadTexture("./Resources/CLEAR.png");
 	//ゲームオーバ
+	int overHandle = Novice::LoadTexture("./Resources/GAMEOVER.png");
 
 	// プレイヤー移動範囲（左右の壁）
 	int minX = 360;
@@ -531,15 +532,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case CLEAR:
-			Novice::ScreenPrintf(500, 400, "CLEAR!");
+			Novice::DrawSprite(0, 0, clearHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
-			Novice::ScreenPrintf(500, 500, "Press ENTER to return to title");
 			break;
 
 		case OVER:
-			Novice::ScreenPrintf(500, 400, "GAME OVER");
+			Novice::DrawSprite(0, 0, overHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
-			Novice::ScreenPrintf(500, 500, "Press ENTER to return to title");
 			break;
 		}
 
