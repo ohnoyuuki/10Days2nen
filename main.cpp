@@ -108,12 +108,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
 	int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
+	//コウモリ管理
+	std::vector<Enemy> komoris;               
+	int komoriHandle = Novice::LoadTexture("./Resources/komori.png");
+
 	// アイテム管理
 	std::vector<PowerUp> powerUps;         // 連射速度アップ
 	std::vector<ShotgunPowerUp> shotgunPowerUps; // ショットガン化
 	int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
 	int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
 	int itemHandle = Novice::LoadTexture("./Resources/item.png");
+
+
+	//HPマーク
+	int hatoHandle = Novice::LoadTexture("./Resources/ha-to.png");
+	//魔法陣耐久値マーク
+	int tateHandle = Novice::LoadTexture("./Resources/tate.png");
 
 
 	//タイトル画面
@@ -148,6 +158,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	auto initGame = [&]() {
 		bullets.clear();
 		goburins.clear();
+		komoris.clear();
 		lives = 20;
 		player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
 		gameTimer = 0;
@@ -207,7 +218,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			break;
 
-		case GAME1: {
+		case GAME1: {//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			// ゲーム時間経過
 			gameTimer++;
 			if (gameTimer >= totalTime) {
@@ -451,6 +462,75 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		} break;
 
+		case GAME2:{//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+			// ゲーム時間経過
+			gameTimer++;
+			if (gameTimer >= totalTime) {
+				scene = CLEAR; // 制限時間を耐えればクリア
+			}
+
+			// プレイヤー操作（AとDキーで左右移動）
+			if (keys[DIK_A]) { player.pos.x -= player.speed; }
+			if (keys[DIK_D]) { player.pos.x += player.speed; }
+
+			// プレイヤーの移動制限（画面外に出ないように）
+			float minPlayerX = minX + player.radius;
+			float maxPlayerX = maxX - player.radius;
+			if (player.pos.x < minPlayerX) player.pos.x = minPlayerX;
+			if (player.pos.x > maxPlayerX) player.pos.x = maxPlayerX;
+
+			// 弾発射（スペースキー）
+			if (keys[DIK_SPACE] && shotCooldown == 0) {
+				if (player.shotgunLevel == 0) {
+					// 通常弾
+					bullets.push_back({ {player.pos.x + 16, player.pos.y}, 16.0f, 15, {0.0f, -1.0f}, true });
+				} else {
+					// ショットガン（複数方向に発射）
+					float angleIncrement = 0.15f;
+					for (int i = -player.shotgunLevel; i <= player.shotgunLevel; ++i) {
+						float angle = angleIncrement * i;
+						bullets.push_back({ {player.pos.x + 16, player.pos.y}, 16.0f, 15, {sinf(angle), -cosf(angle)}, true });
+					}
+				}
+				// クールダウン設定（連射速度に影響）
+				shotCooldown = defaultShotCooldown;
+			}
+			if (shotCooldown > 0) shotCooldown--;
+
+			// 弾の移動処理
+			for (auto& b : bullets) {
+				if (b.isAlive) {
+					b.pos.x += b.direction.x * b.speed;
+					b.pos.y += b.direction.y * b.speed;
+					if (b.pos.y < 0) b.isAlive = false; // 画面外に出たら消える
+				}
+			}
+
+
+
+			// 敵の出現処理
+			enemySpawnTimer++;
+			if (enemySpawnTimer > 60) { // 1秒ごとに出現
+				enemySpawnTimer = 0;
+				float enemyRadius = 32.0f;
+				// 出現位置をランダムに決定
+				int safeMinX = minX + (int)player.radius;
+				int safeRange = range - (int)(player.radius * 2);
+
+				// 経過時間によって敵の体力を上げる
+				int timeInSeconds = gameTimer / framePerSecond;
+				int enemyInitialHP = (timeInSeconds <= 10) ? 1 : 1 + (timeInSeconds / 10) * 5;
+
+				Enemy e = { {(float)(safeMinX + rand() % safeRange), 0.0f}, enemyRadius, 2, true, enemyInitialHP };
+				komoris.push_back(e);
+			}
+		
+
+
+		}
+
+
 		case CLEAR: // ゲームクリア
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = TITLE;
@@ -485,12 +565,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-		case GAME1://ステージ１
+		case GAME1://ステージ１----------------------------------------------------------------------------------------------------------------------
 			//ステージ
+
+
 			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
-			//// 防衛ライン
-			//Novice::DrawLine(0, kWindowHeight - 200, kWindowWidth, kWindowHeight - 200, WHITE);
+			//魔法陣の耐久値
+			Novice::DrawSprite(10, 20, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
+
 			// プレイヤー描画
 			Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			// 弾描画
@@ -504,6 +587,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
 					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
+					Novice::DrawSprite((int)e.pos.x-10, (int)e.pos.y-30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 			// 連射速度アップアイテム描画
@@ -529,7 +613,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			 Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);*/
 			break;
 
-		case GAME2://ステージ２
+		case GAME2://ステージ２---------------------------------------------------------------------------------------------------------------------------------------
+			//ステージ
+			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
+
+
+			// プレイヤー描画
+			Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
+			// 弾描画
+			for (auto& b : bullets) {
+				if (b.isAlive) {
+					Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, mahoudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
+				}
+			}
+
+			// コウモリ描画
+			for (auto& e : komoris) {
+				if (e.isAlive) {
+					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, komoriHandle, 1.0f, 1.0f, 0.0f, WHITE);
+					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
+				}
+			}
+
 
 			break;
 		case GAME3://ステージ３
