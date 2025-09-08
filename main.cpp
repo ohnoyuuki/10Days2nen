@@ -538,12 +538,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		case CLEAR:
 			Novice::DrawSprite(0, 0, clearHandle, 1.0f, 1.0f, 0.0f, WHITE);
-			Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+			//Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
 			break;
 
 		case OVER:
 			Novice::DrawSprite(0, 0, overHandle, 1.0f, 1.0f, 0.0f, WHITE);
-			Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+			//Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
 			break;
 		}
 
