@@ -115,7 +115,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
 	int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
 	int itemHandle = Novice::LoadTexture("./Resources/item.png");
-
+	//タイトル画面
+	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
 	//ゲームクリア
@@ -464,11 +465,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		switch (scene) {
 		case TITLE:
-			Novice::ScreenPrintf(500, 300, "境界を守れ！");
-			Novice::ScreenPrintf(500, 350, "Press ENTER to Start");
+			Novice::DrawSprite(0, 0, tilteHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
 		case EXPLANATION:
-
+			Novice::ScreenPrintf(500, 350, "Press ENTER to Start");
 
 			break;
 		case SELECTION:
