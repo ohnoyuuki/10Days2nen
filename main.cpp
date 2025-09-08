@@ -115,8 +115,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int powerUpSpawnTimer = 0;      // 連射速度アイテム出現までのタイマー
 	int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
 	int itemHandle = Novice::LoadTexture("./Resources/item.png");
+
+
 	//タイトル画面
 	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
+	//操作説明画面
+	int selectHandle = Novice::LoadTexture("./Resources/SELECT.png");
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
 	//ゲームクリア
@@ -194,6 +198,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
 				scene = GAME3;
+				initGame(); // ゲーム開始時に毎回初期化
+			}
+			if (preKeys[DIK_BACKSPACE] == 0 && keys[DIK_BACKSPACE] != 0) {
+				scene = EXPLANATION;
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			break;
@@ -472,10 +480,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			break;
 		case SELECTION:
-			Novice::ScreenPrintf(400, 500, "choose a stage");
-			Novice::ScreenPrintf(400, 520, "press 1 to start ");
-			Novice::ScreenPrintf(400, 540, "press 2 to start ");
-			Novice::ScreenPrintf(400, 560, "press 3 to start");
+			Novice::DrawSprite(0, 0, selectHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
 
 
