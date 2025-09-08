@@ -56,6 +56,16 @@ struct ShotgunPowerUp {
 	int hp;// 壊すための体力
 };
 
+// タル爆弾
+struct Bakudan {
+	Vector2 pos;
+	float radius;
+	int speed;
+	bool isAlive;
+	int hp;// 壊すための体力
+};
+
+
 // シーン管理（ゲームの状態）
 enum Scene {
 	TITLE,// タイトル画面
@@ -119,11 +129,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int shotgunPowerUpSpawnTimer = 0; // ショットガンアイテム出現までのタイマー
 	int itemHandle = Novice::LoadTexture("./Resources/item.png");
 
+	////タル爆弾管理
+	std::vector<Bakudan>bakudans;
+	int bakudanTimer = 0;//爆弾出現までのタイマー
+	int bakudanHandle = Novice::LoadTexture("./Resources/bakudan.png");
+	
+
 
 	//HPマーク
 	int hatoHandle = Novice::LoadTexture("./Resources/ha-to.png");
 	//魔法陣耐久値マーク
 	int tateHandle = Novice::LoadTexture("./Resources/tate.png");
+	
 
 
 	//タイトル画面
@@ -167,6 +184,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		shotgunPowerUpSpawnTimer = 0;
 		powerUps.clear();
 		shotgunPowerUps.clear();
+		bakudans.clear();
+		bakudanTimer = 0;
 		defaultShotCooldown = 15;
 		powerUpLevel = 0;
 		player.shotgunLevel = 0;
@@ -450,7 +469,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) {
 				return !b.isAlive;
 				}), bullets.end());
-			goburins.erase(std::remove_if(goburins.begin(), goburins.end(), [](const Enemy& e) {
+			komoris.erase(std::remove_if(komoris.begin(), komoris.end(), [](const Enemy& e) {
 				return !e.isAlive;
 				}), goburins.end());
 			powerUps.erase(std::remove_if(powerUps.begin(), powerUps.end(), [](const PowerUp& p) {
@@ -462,7 +481,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		} break;
 
-		case GAME2:{//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		case GAME2: {//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 			// ゲーム時間経過
 			gameTimer++;
@@ -525,10 +544,265 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				Enemy e = { {(float)(safeMinX + rand() % safeRange), 0.0f}, enemyRadius, 2, true, enemyInitialHP };
 				komoris.push_back(e);
 			}
-		
+			// 敵の移動処理
+			for (auto& e : komoris) {
+				if (e.isAlive) {
+					e.pos.y += e.speed;
+					// 防衛ラインを超えたらライフ減少
+					if (e.pos.y > kWindowHeight - 200) {
+						e.isAlive = false;
+						lives--;
+						if (lives <= 0) scene = OVER;
+					}
+				}
+			}
+
+			// アイテムの移動処理と非アクティブ化
+			for (auto& p : powerUps) {
+				if (p.isAlive) {
+					p.pos.y += p.speed;
+					// 画面下端に出たら非アクティブ化
+					if (p.pos.y > kWindowHeight) {
+						p.isAlive = false;
+					}
+				}
+			}
+			for (auto& s : shotgunPowerUps) {
+				if (s.isAlive) {
+					s.pos.y += s.speed;
+					// 画面下端に出たら非アクティブ化
+					if (s.pos.y > kWindowHeight) {
+						s.isAlive = false;
+					}
+				}
+			}
+
+			//// 爆弾の移動処理と非アクティブ化
+			for (auto& b : bakudans) {
+				if (b.isAlive) {
+					b.pos.y += b.speed;
+					// 画面下端に出たら非アクティブ化
+					if (b.pos.y > kWindowHeight) {
+						b.isAlive = false;
+					}
+				}
+			}
+
+			// アイテム出現処理（連射速度アップ）
+			powerUpSpawnTimer++;
+			if (powerUpSpawnTimer >= 5 * framePerSecond) {
+				PowerUp p = { {0.0f, 0.0f}, 50.0f, 3, true, 3 };
+				bool spawnable = false;
+				int maxAttempts = 50;
+				for (int i = 0; i < maxAttempts; ++i) {
+					float newX = (float)(minItemX + rand() % itemRange);
+					p.pos = { newX, 0.0f };
+					spawnable = true;
+					for (const auto& existingP : powerUps) {
+						if (IsTooClose(p.pos, p.radius, existingP.pos, existingP.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingS : shotgunPowerUps) {
+						if (IsTooClose(p.pos, p.radius, existingS.pos, existingS.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingE : goburins) {
+						if (IsTooClose(p.pos, p.radius, existingE.pos, existingE.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					if (spawnable) break;
+				}
+				if (spawnable) powerUps.push_back(p);
+				// タイマーをゼロにリセット
+				powerUpSpawnTimer = 0;
+			}
+
+			// アイテム出現処理（ショットガン化）
+			shotgunPowerUpSpawnTimer++;
+			if (shotgunPowerUpSpawnTimer >= 10 * framePerSecond) {
+				ShotgunPowerUp s = { {0.0f, 0.0f}, 50.0f, 3, true, 5 };
+				bool spawnable = false;
+				int maxAttempts = 50;
+				for (int i = 0; i < maxAttempts; ++i) {
+					float newX = (float)(minItemX + rand() % itemRange);
+					s.pos = { newX, 0.0f };
+					spawnable = true;
+					for (const auto& existingP : powerUps) {
+						if (IsTooClose(s.pos, s.radius, existingP.pos, existingP.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingS : shotgunPowerUps) {
+						if (IsTooClose(s.pos, s.radius, existingS.pos, existingS.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingE : goburins) {
+						if (IsTooClose(s.pos, s.radius, existingE.pos, existingE.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					if (spawnable) break;
+				}
+				if (spawnable) shotgunPowerUps.push_back(s);
+				// タイマーをゼロにリセット
+				shotgunPowerUpSpawnTimer = 0;
+			}
+
+			// 爆弾出現処理
+			bakudanTimer++;
+			if (bakudanTimer >= 5 * framePerSecond) {
+				Bakudan b = { {0.0f, 0.0f}, 50.0f, 3, true, 3 };
+				bool spawnable = false;
+				int maxAttempts = 50;
+				for (int i = 0; i < maxAttempts; ++i) {
+					float newX = (float)(minItemX + rand() % itemRange);
+					b.pos = { newX, 0.0f };
+					spawnable = true;
+					for (const auto& existingP : powerUps) {
+						if (IsTooClose(b.pos, b.radius, existingP.pos, existingP.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingS : shotgunPowerUps) {
+						if (IsTooClose(b.pos, b.radius, existingS.pos, existingS.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					for (const auto& existingE : goburins) {
+						if (IsTooClose(b.pos, b.radius, existingE.pos, existingE.radius)) {
+							spawnable = false;
+							break;
+						}
+					}
+					if (spawnable) break;
+				}
+				if (spawnable) bakudans.push_back(b);
+				// タイマーをゼロにリセット
+				bakudanTimer = 0;
+			}
+			
 
 
-		}
+
+
+
+			// 弾と敵・アイテム・爆弾の当たり判定
+			for (auto& b : bullets) {
+				if (!b.isAlive) continue;
+
+				// 敵との衝突
+				for (auto& e : komoris) {
+					if (!e.isAlive) continue;
+					float dx = b.pos.x - e.pos.x;
+					float dy = b.pos.y - e.pos.y;
+					float dist = sqrtf(dx * dx + dy * dy);
+					if (dist < b.radius + e.radius) {
+						b.isAlive = false;
+						e.hp--;
+						if (e.hp <= 0) e.isAlive = false;
+					}
+				}
+
+				//爆弾との衝突
+				for (auto& baku : bakudans) {
+					if (!baku.isAlive) continue;
+					float dx = b.pos.x - baku.pos.x;
+					float dy = b.pos.y - baku.pos.y;
+					float dist = sqrtf(dx * dx + dy * dy);
+					if (dist < b.radius + baku.radius) {
+						b.isAlive = false;
+						baku.hp--;
+						if (baku.hp <= 0) {
+							baku.isAlive = false;
+							lives--;
+						}
+					}
+				}
+
+
+				// 連射速度アップアイテムとの衝突
+				for (auto& p : powerUps) {
+					if (!p.isAlive) continue;
+					float dx = b.pos.x - p.pos.x;
+					float dy = b.pos.y - p.pos.y;
+					float dist = sqrtf(dx * dx + dy * dy);
+					if (dist < b.radius + p.radius) {
+						b.isAlive = false;
+						p.hp--;
+						if (p.hp <= 0) {
+							p.isAlive = false;
+							// レベルに応じて連射速度を短縮
+							powerUpLevel++;
+							if (powerUpLevel == 1) defaultShotCooldown = 10;
+							else if (powerUpLevel == 2) defaultShotCooldown = 8;
+							else if (powerUpLevel == 3) defaultShotCooldown = 6;
+							else defaultShotCooldown = 4;
+						}
+					}
+				}
+
+				// ショットガンアイテムとの衝突
+				for (auto& s : shotgunPowerUps) {
+					if (!s.isAlive) continue;
+					float dx = b.pos.x - s.pos.x;
+					float dy = b.pos.y - s.pos.y;
+					float dist = sqrtf(dx * dx + dy * dy);
+					if (dist < b.radius + s.radius) {
+						b.isAlive = false;
+						s.hp--;
+						if (s.hp <= 0) {
+							s.isAlive = false;
+							player.shotgunLevel++;
+							player.shotgunTimer = 6 * framePerSecond; // 効果6秒間
+						}
+					}
+				}
+			}
+
+			// ショットガン効果時間を減らす
+			if (player.shotgunTimer > 0) {
+				player.shotgunTimer--;
+				if (player.shotgunTimer <= 0) {
+					player.shotgunLevel = 0; // 効果終了
+				}
+			}
+
+			// 不要になったオブジェクトをvectorから削除（ガベージコレクション）
+			bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) {
+				return !b.isAlive;
+				}), bullets.end());
+
+			komoris.erase(std::remove_if(komoris.begin(), komoris.end(), [](const Enemy& e) {
+				return !e.isAlive;
+				}), komoris.end());
+
+			bakudans.erase(std::remove_if(bakudans.begin(), bakudans.end(), [](const Bakudan& baku) {
+				return !baku.isAlive;
+				}), bakudans.end());
+
+			powerUps.erase(std::remove_if(powerUps.begin(), powerUps.end(), [](const PowerUp& p) {
+				return !p.isAlive;
+				}), powerUps.end());
+
+			shotgunPowerUps.erase(std::remove_if(shotgunPowerUps.begin(), shotgunPowerUps.end(), [](const ShotgunPowerUp& s) {
+				return !s.isAlive;
+				}), shotgunPowerUps.end());
+
+
+
+		}break;
 
 
 		case CLEAR: // ゲームクリア
@@ -632,9 +906,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, komoriHandle, 1.0f, 1.0f, 0.0f, WHITE);
 					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
+					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+				}
+			}
+			//爆弾描画
+			for (auto& b : bakudans) {
+				if (b.isAlive) {
+					Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, bakudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
+					Novice::ScreenPrintf((int)b.pos.x - 10, (int)b.pos.y - 30, "HP:%d", b.hp);
+					Novice::DrawSprite((int)b.pos.x - 10, (int)b.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 
+
+			// 連射速度アップアイテム描画
+			for (auto& p : powerUps) {
+				if (p.isAlive) {
+					Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
+					Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
+				}
+			}
+			//弾増加アップアイテム描画
+			for (auto& s : shotgunPowerUps) {
+				if (s.isAlive) {
+					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
+					Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
+				}
+			}
+
+
+			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
 
 			break;
 		case GAME3://ステージ３
