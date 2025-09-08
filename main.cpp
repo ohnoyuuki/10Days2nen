@@ -60,6 +60,7 @@ struct ShotgunPowerUp {
 enum Scene {
 	TITLE,
 	EXPLANATION,
+	SELECTION,
 	GAME1,
 	GAME2,
 	GAME3,
@@ -117,6 +118,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
+	//ゲームクリア
+
+	//ゲームオーバ
 
 	// プレイヤー移動範囲（左右の壁）
 	int minX = 360;
@@ -170,7 +174,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			break;
 
-		case EXPLANATION: // 操作説明画面
+		case EXPLANATION:// 操作説明画面
+			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
+				scene = SELECTION; // スペースキーで説明画面へ
+			}
+
+			break;
+
+		case SELECTION: // 選択画面
 			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
 				scene = GAME1;
 				initGame(); // ゲーム開始時に毎回初期化
@@ -455,17 +466,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::ScreenPrintf(500, 300, "境界を守れ！");
 			Novice::ScreenPrintf(500, 350, "Press ENTER to Start");
 			break;
-
 		case EXPLANATION:
-			//Novice::ScreenPrintf(400, 300, "ルール説明:");
-			//Novice::ScreenPrintf(400, 340, "・A/Dキーで移動");
-			//Novice::ScreenPrintf(400, 380, "・SPACEで弾を撃つ");
-			//Novice::ScreenPrintf(400, 420, "・敵が境界(画面中央の白線)を超えないよう守ろう！");
+
+
+			break;
+		case SELECTION:
 			Novice::ScreenPrintf(400, 500, "choose a stage");
 			Novice::ScreenPrintf(400, 520, "press 1 to start ");
 			Novice::ScreenPrintf(400, 540, "press 2 to start ");
 			Novice::ScreenPrintf(400, 560, "press 3 to start");
 			break;
+
+
 
 		case GAME1://ステージ１
 			//ステージ
