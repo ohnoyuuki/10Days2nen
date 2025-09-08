@@ -7,35 +7,35 @@ const char kWindowTitle[] = "﻿魔法結界を守れ！";
 
 // 2Dベクトル構造体
 struct Vector2 {
-	float x;
-	float y;
+	float x; // X座標
+	float y; // Y座標
 };
 
 // プレイヤー情報
 struct Player {
-	Vector2 pos;        // 位置
-	float radius;       // 半径（当たり判定用）
-	int speed;          // 移動速度
-	int shotgunLevel;   // ショットガンのレベル（弾数が増える）
-	int shotgunTimer;   // ショットガン効果の残り時間（フレーム単位）
+	Vector2 pos;// 位置
+	float radius;// 当たり判定に使う円の半径
+	int speed;// 移動速度
+	int shotgunLevel;// ショットガンのレベル（弾の拡散範囲に影響）
+	int shotgunTimer;// ショットガン効果の残り時間（フレーム単位）
 };
 
 // 弾の情報
 struct Bullet {
-	Vector2 pos;        // 位置
-	float radius;       // 半径（当たり判定用）
-	int speed;          // 移動速度
-	Vector2 direction;  // 移動方向（正規化ベクトル）
-	bool isAlive;       // 生存フラグ（trueなら画面内で存在している）
+	Vector2 pos;// 位置
+	float radius;// 当たり判定に使う円の半径
+	int speed;// 移動速度
+	Vector2 direction;// 移動方向（正規化されたベクトル）
+	bool isAlive;// 生存フラグ（trueなら画面内に存在）
 };
 
 // 敵の情報
 struct Enemy {
-	Vector2 pos;        // 位置
-	float radius;       // 半径（当たり判定用）
-	int speed;          // 移動速度
-	bool isAlive;       // 生存フラグ
-	int hp;             // 体力
+	Vector2 pos;// 位置
+	float radius;// 当たり判定に使う円の半径
+	int speed;// 移動速度
+	bool isAlive;// 生存フラグ
+	int hp;// 体力
 };
 
 // 連射速度アップアイテム
@@ -44,7 +44,7 @@ struct PowerUp {
 	float radius;
 	int speed;
 	bool isAlive;
-	int hp;             // 壊すためのHP
+	int hp;// 壊すための体力
 };
 
 // 弾数増加（ショットガン化）アイテム
@@ -53,21 +53,20 @@ struct ShotgunPowerUp {
 	float radius;
 	int speed;
 	bool isAlive;
-	int hp;             // 壊すためのHP
+	int hp;// 壊すための体力
 };
 
-// シーン管理（タイトル・説明・ゲーム本編・クリア・ゲームオーバー）
+// シーン管理（ゲームの状態）
 enum Scene {
-	TITLE,
-	EXPLANATION,
-	SELECTION,
-	GAME1,
-	GAME2,
-	GAME3,
-	CLEAR,
-	OVER,
+	TITLE,// タイトル画面
+	EXPLANATION,// 説明画面
+	SELECTION,// ステージ選択画面
+	GAME1,// ゲーム本編（ステージ1）
+	GAME2,// ゲーム本編（ステージ2）
+	GAME3,// ゲーム本編（ステージ3）
+	CLEAR,// クリア画面
+	OVER,// ゲームオーバー画面
 };
-
 int scene = TITLE;
 
 // 2つのオブジェクトが近すぎるかどうかを判定する関数
@@ -119,7 +118,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//タイトル画面
 	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
-	//操作説明画面
+	//説明
+	int Explanation = Novice::LoadTexture("./Resources/Setumei.png");
+	//ステージ選択
 	int selectHandle = Novice::LoadTexture("./Resources/SELECT.png");
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
@@ -476,8 +477,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::DrawSprite(0, 0, tilteHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
 		case EXPLANATION:
-			Novice::ScreenPrintf(500, 350, "Press ENTER to Start");
-
+			Novice::DrawSprite(0, 0, Explanation, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
 		case SELECTION:
 			Novice::DrawSprite(0, 0, selectHandle, 1.0f, 1.0f, 0.0f, WHITE);
