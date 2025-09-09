@@ -69,7 +69,9 @@ struct Bakudan {
 // シーン管理（ゲームの状態）
 enum Scene {
 	TITLE,// タイトル画面
-	EXPLANATION,// 説明画面
+	EXPLANATION1,// 説明画面
+	EXPLANATION2,//ステージ２説明
+	EXPLANATION3,//ステージ３説明
 	SELECTION,// ステージ選択画面
 	GAME1,// ゲーム本編（ステージ1）
 	GAME2,// ゲーム本編（ステージ2）
@@ -145,8 +147,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	//タイトル画面
 	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
-	//説明
-	int Explanation = Novice::LoadTexture("./Resources/Setumei.png");
+	//説明1
+	int Explanation1 = Novice::LoadTexture("./Resources/Setumei.png");
+	//説明2
+	int Explanation2 = Novice::LoadTexture("./Resources/Setumei2.png");
+	//説明3
+	int Explanation3 = Novice::LoadTexture("./Resources/Setumei3.png");
 	//ステージ選択
 	int selectHandle = Novice::LoadTexture("./Resources/SELECT.png");
 	//ステージ
@@ -207,17 +213,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		switch (scene) {
 		case TITLE: // タイトル画面
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
-				scene = EXPLANATION; // スペースキーで説明画面へ
+				scene = EXPLANATION1; // スペースキーで説明画面へ
 			}
 			break;
 
-		case EXPLANATION:// 操作説明画面
+		case EXPLANATION1:// 説明1画面
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
-				scene = SELECTION; // スペースキーで説明画面へ
+				scene = SELECTION; //ステージ選択へ
+			}
+			if (preKeys[DIK_2] == 0 && keys[DIK_2] != 0) {
+				scene = EXPLANATION2; //説明2画面へ
+			}
+			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
+				scene = EXPLANATION3; // 説明3画面へ
 			}
 
 			break;
+		case EXPLANATION2:// 説明2画面
+			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
+				scene = SELECTION;//ステージ選択へ
+			}
+			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
+				scene = EXPLANATION1; //説明1画面へ
+			}
+			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
+				scene = EXPLANATION3; // 説明3画面へ
+			}
+			break;
+		case EXPLANATION3:// 説明3画面
+			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
+				scene = SELECTION; //ステージ選択へ
+			}
+			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
+				scene = EXPLANATION1; //説明1画面へ
+			}
+			if (preKeys[DIK_2] == 0 && keys[DIK_2] != 0) {
+				scene = EXPLANATION2; // 説明2画面へ
+			}
 
+			break;
+			break;
 		case SELECTION: // 選択画面
 			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
 				scene = GAME1;
@@ -232,7 +267,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			if (preKeys[DIK_BACKSPACE] == 0 && keys[DIK_BACKSPACE] != 0) {
-				scene = EXPLANATION;
+				scene = EXPLANATION1;
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			break;
@@ -833,8 +868,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case TITLE:
 			Novice::DrawSprite(0, 0, tilteHandle, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
-		case EXPLANATION:
-			Novice::DrawSprite(0, 0, Explanation, 1.0f, 1.0f, 0.0f, WHITE);
+		case EXPLANATION1:
+			Novice::DrawSprite(0, 0, Explanation1, 1.0f, 1.0f, 0.0f, WHITE);
+			break;
+		case EXPLANATION2:
+			Novice::DrawSprite(0, 0, Explanation2, 1.0f, 1.0f, 0.0f, WHITE);
+			break;
+		case EXPLANATION3:
+			Novice::DrawSprite(0, 0, Explanation3, 1.0f, 1.0f, 0.0f, WHITE);
 			break;
 		case SELECTION:
 			Novice::DrawSprite(0, 0, selectHandle, 1.0f, 1.0f, 0.0f, WHITE);
