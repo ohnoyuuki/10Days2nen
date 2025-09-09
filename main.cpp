@@ -137,20 +137,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int bakudanHandle = Novice::LoadTexture("./Resources/bakudan.png");
 	
 
-	// 数字画像をロード
+	//タイマー 数字画像をロード
 	int numberGrahs[10] = {};
 	for (int i = 0; i < 10; i++) {
 		char filePath[64];
 		snprintf(filePath, sizeof(filePath), "./Resources/%d.png", i); // 安全な関数
 		numberGrahs[i] = Novice::LoadTexture(filePath);
 	}
+	const int graphWidth = 71;
+	int frame = 0;   // フレームカウント
+	int seconds = 0; // 秒数
+
+
+
 	//HPマーク
 	int hatoHandle = Novice::LoadTexture("./Resources/ha-to.png");
 	//魔法陣耐久値マーク
 	int tateHandle = Novice::LoadTexture("./Resources/tate.png");
 	
-
-
 	//タイトル画面
 	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
 	//説明1
@@ -202,6 +206,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		powerUpLevel = 0;
 		player.shotgunLevel = 0;
 		player.shotgunTimer = 0;
+		frame = 0; // タイマーをリセット
+		seconds = 0;
 		};
 	initGame(); // 初回起動時に初期化
 
@@ -279,6 +285,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 
 		case GAME1: {//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			//リソースタイマーの更新
+			frame++;
+			seconds = frame / 60; // ここの値を変更
+			if (seconds >= 60) {
+				scene = CLEAR;
+			}
+			//---------------------------------------------------
+
 			// ゲーム時間経過
 			gameTimer++;
 			if (gameTimer >= totalTime) {
@@ -864,11 +878,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			break;
 		}
 
-		/// ====================
+		/// =====================================================================================================
 		/// 描画処理
-		/// ====================
-		int elapsedMinutes = gameTimer / framePerSecond / 60;
-		int elapsedSeconds = gameTimer / framePerSecond % 60;
+		/// =====================================================================================================
+		/*int elapsedMinutes = gameTimer / framePerSecond / 60;
+		int elapsedSeconds = gameTimer / framePerSecond % 60;*/
 
 		switch (scene) {
 		case TITLE:
@@ -890,10 +904,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		case GAME1://ステージ１----------------------------------------------------------------------------------------------------------------------
+			
+
+
 			//ステージ
-
-
 			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
+
+			//リソースタイマーの更新
+			// 桁ごとに分解
+			int numbersArray[2];
+			numbersArray[0] = seconds / 10; // 十の位
+			numbersArray[1] = seconds % 10; // 一の位
+
+			for (int i = 0; i < 2; i++) {
+				Novice::DrawSprite(
+					graphWidth * i, 0,
+					numberGrahs[numbersArray[i]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+			//-----------------------------------------------------------------------------
+
+
 
 			//魔法陣の耐久値
 			Novice::DrawSprite(10, 20, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
@@ -929,10 +961,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 			}
 			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
-			Novice::ScreenPrintf(20, 40, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
-			Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
-			Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
-			Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
+			//Novice::ScreenPrintf(20, 40, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
+			//Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
+			//Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
+			//Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
+			//Novice::ScreenPrintf(20, 120, "Seconds: %d", seconds);
 			break;
 
 		case GAME2://ステージ２---------------------------------------------------------------------------------------------------------------------------------------
