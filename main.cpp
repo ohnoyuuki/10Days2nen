@@ -978,7 +978,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 			//魔法陣の耐久値
-			Novice::DrawSprite(10, 20, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
+			Novice::DrawSprite(10, 60, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
 			// プレイヤー描画
 			Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
