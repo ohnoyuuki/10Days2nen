@@ -469,7 +469,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b) {
 				return !b.isAlive;
 				}), bullets.end());
-			komoris.erase(std::remove_if(komoris.begin(), komoris.end(), [](const Enemy& e) {
+			goburins.erase(std::remove_if(goburins.begin(), goburins.end(), [](const Enemy& e) {
 				return !e.isAlive;
 				}), goburins.end());
 			powerUps.erase(std::remove_if(powerUps.begin(), powerUps.end(), [](const PowerUp& p) {
@@ -715,7 +715,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 				}
 
-				//爆弾との衝突
+				// 爆弾との衝突
 				for (auto& baku : bakudans) {
 					if (!baku.isAlive) continue;
 					float dx = b.pos.x - baku.pos.x;
@@ -726,7 +726,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						baku.hp--;
 						if (baku.hp <= 0) {
 							baku.isAlive = false;
-							lives--;
+							lives--; // ライフを減らす
+							if (lives <= 0) {
+								scene = OVER; // ゲームオーバーへ
+							}
 						}
 					}
 				}
