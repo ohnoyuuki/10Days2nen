@@ -537,6 +537,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		} break;
 
 		case GAME2: {//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			//リソースタイマーの更新
+			frame++;
+			seconds = frame / 60; // ここの値を変更
+			if (seconds >= 60) {
+				scene = CLEAR;
+			}
+			//---------------------------------------------------
+
 
 			// ゲーム時間経過
 			gameTimer++;
@@ -910,7 +918,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//ステージ
 			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
-			//リソースタイマーの更新
+			//リソースタイマーの更新-------------------------------------------------------
 			// 桁ごとに分解
 			int numbersArray[2];
 			numbersArray[0] = seconds / 10; // 十の位
@@ -972,6 +980,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//ステージ
 			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
+			//リソースタイマーの更新-------------------------------------------------------
+			// 桁ごとに分解
+			numbersArray[0] = seconds / 10; // 十の位
+			numbersArray[1] = seconds % 10; // 一の位
+
+			for (int i = 0; i < 2; i++) {
+				Novice::DrawSprite(
+					graphWidth * i, 0,
+					numberGrahs[numbersArray[i]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+			//-----------------------------------------------------------------------------
 
 			// プレイヤー描画
 			Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
