@@ -121,7 +121,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
 	//コウモリ管理
-	std::vector<Enemy> komoris;               
+	std::vector<Enemy> komoris;
 	int komoriHandle = Novice::LoadTexture("./Resources/komori.png");
 
 	// アイテム管理
@@ -135,7 +135,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	std::vector<Bakudan>bakudans;
 	int bakudanTimer = 0;//爆弾出現までのタイマー
 	int bakudanHandle = Novice::LoadTexture("./Resources/bakudan.png");
-	
+
 
 	//タイマー 数字画像をロード
 	int numberGrahs[10] = {};
@@ -149,12 +149,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int seconds = 0; // 秒数
 
 
+	// サウンドデータ
+	int Bgmtitle = Novice::LoadAudio("./Resources/Sounds/title.mp3");//タイトル音
+	int Bgmketei = Novice::LoadAudio("./Resources/Sounds/ketei.mp3");//決定音
+	int Bgmcancel = Novice::LoadAudio("./Resources/Sounds/cancel.mp3");//戻る音
+	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
+
+	int titleBGM = -1;// タイトルBGM
+	int keteiSE = -1;//決定SE
+	int canselSE = -1;//戻るSE
+	int Stage1BGM = -1;//ステージ１BGM
+
+
+
+
+
 
 	//HPマーク
 	int hatoHandle = Novice::LoadTexture("./Resources/ha-to.png");
 	//魔法陣耐久値マーク
 	int tateHandle = Novice::LoadTexture("./Resources/tate.png");
-	
+
 	//タイトル画面
 	int tilteHandle = Novice::LoadTexture("./Resources/Tilte.png");
 	//説明1
@@ -224,20 +239,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ====================
 		switch (scene) {
 		case TITLE: // タイトル画面
+			// サウンドが再生されていなければ再生開始
+			if (!Novice::IsPlayingAudio(titleBGM)) {
+				titleBGM = Novice::PlayAudio(Bgmtitle, false, 1.0f);
+			}
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
-				scene = EXPLANATION1; // スペースキーで説明画面へ
+				scene = EXPLANATION1; //説明画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			break;
 
 		case EXPLANATION1:// 説明1画面
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = SELECTION; //ステージ選択へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_2] == 0 && keys[DIK_2] != 0) {
 				scene = EXPLANATION2; //説明2画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
 				scene = EXPLANATION3; // 説明3画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 
 			break;
@@ -264,27 +287,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			break;
-			break;
 		case SELECTION: // 選択画面
 			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
 				scene = GAME1;
+				Novice::StopAudio(titleBGM); // 再生中の音を止める
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			if (preKeys[DIK_2] == 0 && keys[DIK_2] != 0) {
 				scene = GAME2;
+				Novice::StopAudio(titleBGM); // 再生中の音を止める
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
 				scene = GAME3;
+				Novice::StopAudio(titleBGM); // 再生中の音を止める
 				initGame(); // ゲーム開始時に毎回初期化
 			}
 			if (preKeys[DIK_BACKSPACE] == 0 && keys[DIK_BACKSPACE] != 0) {
 				scene = EXPLANATION1;
 				initGame(); // ゲーム開始時に毎回初期化
+				canselSE = Novice::PlayAudio(Bgmcancel, false, 1.0f);//戻る音
 			}
+
+
 			break;
 
 		case GAME1: {//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			// サウンドが再生されていなければ再生開始
+			if (!Novice::IsPlayingAudio(Stage1BGM)) {
+				Stage1BGM = Novice::PlayAudio(Bgmstage1, false, 1.0f);
+			}
+
+
 			//リソースタイマーの更新
 			frame++;
 			seconds = frame / 60; // ここの値を変更
@@ -755,7 +789,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				// タイマーをゼロにリセット
 				bakudanTimer = 0;
 			}
-			
+
 
 
 
@@ -912,7 +946,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		case GAME1://ステージ１----------------------------------------------------------------------------------------------------------------------
-			
+
 
 
 			//ステージ
@@ -951,7 +985,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
 					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
-					Novice::DrawSprite((int)e.pos.x-10, (int)e.pos.y-30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 			// 連射速度アップアイテム描画
