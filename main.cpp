@@ -596,11 +596,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		} break;
 
 		case GAME2: {//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			// サウンドが再生されていなければ再生開始
+			if (!Novice::IsPlayingAudio(Stage2BGM)) {
+				Stage2BGM = Novice::PlayAudio(Bgmstage2, false, 1.0f);
+			}
 			//リソースタイマーの更新
 			frame++;
 			seconds = frame / 60; // ここの値を変更
 			if (seconds >= 60) {
 				scene = CLEAR;
+				Novice::StopAudio(Stage2BGM); // 再生中の音を止める
+				// サウンドが再生されていなければ再生開始
+				if (!Novice::IsPlayingAudio(clearBGM)) {
+					clearBGM = Novice::PlayAudio(Bgmclear, false, 1.0f);
+				}
+
 			}
 			//---------------------------------------------------
 
@@ -636,6 +646,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 				// クールダウン設定（連射速度に影響）
 				shotCooldown = defaultShotCooldown;
+				mahouSE = Novice::PlayAudio(Bgmmahou, false, 1.0f);//魔法音
 			}
 			if (shotCooldown > 0) shotCooldown--;
 
@@ -674,7 +685,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					if (e.pos.y > kWindowHeight - 200) {
 						e.isAlive = false;
 						lives--;
-						if (lives <= 0) scene = OVER;
+						if (lives <= 0) {
+							scene = OVER;
+							Novice::StopAudio(Stage2BGM); // 再生中の音を止める
+							// サウンドが再生されていなければ再生開始
+							if (!Novice::IsPlayingAudio(overBGM)) {
+								overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+							}
+						}
 					}
 				}
 			}
