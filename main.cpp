@@ -107,6 +107,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Player player = { {kWindowWidth / 2.0f, kWindowHeight - 100.0f}, 48.0f, 8, 0, 0 };
 	int playerHandle = Novice::LoadTexture("./Resources/player.png");
 
+	int lives = 1;                 // ライフ（防衛ラインに侵入されると減る）
+
 	// 弾管理
 	std::vector<Bullet> bullets;    // 発射された弾リスト
 	int shotCooldown = 0;           // 次の弾が撃てるまでの待ち時間
@@ -117,7 +119,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//ゴブリン管理
 	std::vector<Enemy> goburins;
 	int enemySpawnTimer = 0;        // 敵出現までのタイマー
-	int lives = 20;                 // ライフ（防衛ラインに侵入されると減る）
+	
 	int goburinHandle = Novice::LoadTexture("./Resources/goburin.png");
 
 	//コウモリ管理
@@ -154,17 +156,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int Bgmketei = Novice::LoadAudio("./Resources/Sounds/ketei.mp3");//決定音
 	int Bgmcancel = Novice::LoadAudio("./Resources/Sounds/cancel.mp3");//戻る音
 	int Bgmmahou = Novice::LoadAudio("./Resources/Sounds/mahou.mp3");//魔法音
+	int Bgmclear = Novice::LoadAudio("./Resources/Sounds/clear.mp3");//ゲームクリア音
+	int Bgmover = Novice::LoadAudio("./Resources/Sounds/over.mp3");//ゲームオーバ音
+
 	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
-	
+	int Bgmstage2 = Novice::LoadAudio("./Resources/Sounds/stage2.mp3");//ステージ2音
 
 	//サウンドハンドル
 	int titleBGM = -1;// タイトルBGM
 	int keteiSE = -1;//決定SE
 	int canselSE = -1;//戻るSE
 	int mahouSE = -1;//魔法SE
+	int clearBGM = -1;//ゲームクリアBGM
+	int overBGM = -1;//ゲームオーバBGM
+
+
 
 	int Stage1BGM = -1;//ステージ１BGM
-
+	int Stage2BGM = -1;//ステージ２ BGM
 
 
 
@@ -212,7 +221,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		bullets.clear();
 		goburins.clear();
 		komoris.clear();
-		lives = 20;
+		lives = 10;
 		player.pos = { kWindowWidth / 2.0f, kWindowHeight - 100.0f };
 		gameTimer = 0;
 		shotCooldown = 0;
@@ -327,9 +336,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//リソースタイマーの更新
 			frame++;
 			seconds = frame / 60; // ここの値を変更
-			if (seconds >= 60) {
+			if (seconds >= 10) {
 				scene = CLEAR;
 				Novice::StopAudio(Stage1BGM); // 再生中の音を止める
+				// サウンドが再生されていなければ再生開始
+				if (!Novice::IsPlayingAudio(clearBGM)) {
+					clearBGM = Novice::PlayAudio(Bgmclear, false, 1.0f);
+				}
 			}
 			//---------------------------------------------------
 
@@ -404,6 +417,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						e.isAlive = false;
 						lives--;
 						if (lives <= 0) scene = OVER;
+						// サウンドが再生されていなければ再生開始
+						if (!Novice::IsPlayingAudio(overBGM)) {
+							overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+						}
 					}
 				}
 			}
@@ -917,6 +934,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = TITLE;
 				initGame();
+				Novice::StopAudio(clearBGM); // 再生中の音を止める
+				
 			}
 			break;
 
@@ -924,6 +943,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = TITLE;
 				initGame();
+				Novice::StopAudio(overBGM); // 再生中の音を止める
 			}
 			break;
 		}
