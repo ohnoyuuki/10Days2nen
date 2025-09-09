@@ -161,8 +161,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
 	int Bgmstage2 = Novice::LoadAudio("./Resources/Sounds/stage2.mp3");//ステージ2音
+	int Bgmstage3 = Novice::LoadAudio("./Resources/Sounds/stage3.mp3");//ステージ3音
 
-	//サウンドハンドル
+	//サウンドハンドル----------------------
 	int titleBGM = -1;// タイトルBGM
 	int keteiSE = -1;//決定SE
 	int canselSE = -1;//戻るSE
@@ -174,8 +175,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	int Stage1BGM = -1;//ステージ１BGM
 	int Stage2BGM = -1;//ステージ２ BGM
-
-
+	int Stage3BGM = -1;//ステージ２ BGM
+	//---------------------------------------
 
 
 
@@ -947,6 +948,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		}break;
 
+		case GAME3://-------------------------------------------------------------------------------------------------------------------------------------
+			// サウンドが再生されていなければ再生開始
+			if (!Novice::IsPlayingAudio(Stage3BGM)) {
+				Stage3BGM = Novice::PlayAudio(Bgmstage3, false, 1.0f);
+			}
+			break;
 
 		case CLEAR: // ゲームクリア
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
@@ -1120,7 +1127,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
 
 			break;
-		case GAME3://ステージ３
+		case GAME3://ステージ３---------------------------------------------------------------------------------------------------------------------
 
 			break;
 
