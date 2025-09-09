@@ -137,7 +137,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int bakudanHandle = Novice::LoadTexture("./Resources/bakudan.png");
 	
 
-
+	// 数字画像をロード
+	int numberGrahs[10] = {};
+	for (int i = 0; i < 10; i++) {
+		char filePath[64];
+		snprintf(filePath, sizeof(filePath), "./Resources/%d.png", i); // 安全な関数
+		numberGrahs[i] = Novice::LoadTexture(filePath);
+	}
 	//HPマーク
 	int hatoHandle = Novice::LoadTexture("./Resources/ha-to.png");
 	//魔法陣耐久値マーク
@@ -927,8 +933,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
 			Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
 			Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
-			/* Novice::DrawBox(0, 0, minX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);
-			 Novice::DrawBox(maxX + 1, 0, kWindowWidth - maxX, kWindowHeight, 0.0f, BLACK, kFillModeSolid);*/
 			break;
 
 		case GAME2://ステージ２---------------------------------------------------------------------------------------------------------------------------------------
@@ -988,12 +992,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		case CLEAR:
 			Novice::DrawSprite(0, 0, clearHandle, 1.0f, 1.0f, 0.0f, WHITE);
-			//Novice::ScreenPrintf(500, 450, "Clear Time: %d:%02d", elapsedMinutes, elapsedSeconds);
 			break;
 
 		case OVER:
 			Novice::DrawSprite(0, 0, overHandle, 1.0f, 1.0f, 0.0f, WHITE);
-			//Novice::ScreenPrintf(500, 450, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
 			break;
 		}
 
