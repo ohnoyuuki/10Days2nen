@@ -153,11 +153,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int Bgmtitle = Novice::LoadAudio("./Resources/Sounds/title.mp3");//タイトル音
 	int Bgmketei = Novice::LoadAudio("./Resources/Sounds/ketei.mp3");//決定音
 	int Bgmcancel = Novice::LoadAudio("./Resources/Sounds/cancel.mp3");//戻る音
+	int Bgmmahou = Novice::LoadAudio("./Resources/Sounds/mahou.mp3");//魔法音
 	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
+	
 
+	//サウンドハンドル
 	int titleBGM = -1;// タイトルBGM
 	int keteiSE = -1;//決定SE
 	int canselSE = -1;//戻るSE
+	int mahouSE = -1;//魔法SE
+
 	int Stage1BGM = -1;//ステージ１BGM
 
 
@@ -183,7 +188,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
 	//ゲームクリア
-	int clearHandle = Novice::LoadTexture("./Resources/CLEAR.png");
+	int clearHandle = Novice::LoadTexture("./Resources/CLEA.png");
 	//ゲームオーバ
 	int overHandle = Novice::LoadTexture("./Resources/GAMEOVER.png");
 
@@ -324,6 +329,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			seconds = frame / 60; // ここの値を変更
 			if (seconds >= 60) {
 				scene = CLEAR;
+				Novice::StopAudio(Stage1BGM); // 再生中の音を止める
 			}
 			//---------------------------------------------------
 
@@ -345,6 +351,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			// 弾発射（スペースキー）
 			if (keys[DIK_SPACE] && shotCooldown == 0) {
+				
 				if (player.shotgunLevel == 0) {
 					// 通常弾
 					bullets.push_back({ {player.pos.x + 16, player.pos.y}, 16.0f, 15, {0.0f, -1.0f}, true });
@@ -358,6 +365,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 				// クールダウン設定（連射速度に影響）
 				shotCooldown = defaultShotCooldown;
+				mahouSE = Novice::PlayAudio(Bgmmahou, false, 1.0f);//魔法音
 			}
 			if (shotCooldown > 0) shotCooldown--;
 
