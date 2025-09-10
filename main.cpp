@@ -3,7 +3,7 @@
 #include <cmath>
 #include <algorithm> // for std::remove_if
 
-const char kWindowTitle[] = "﻿魔法結界を守れ！";
+const char kWindowTitle[] = "2066_﻿魔法結界を守れ！";
 
 // 2Dベクトル構造体
 struct Vector2 {
@@ -998,12 +998,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			// ドラキュラが存在し、かつゲーム時間が経過したらゲームオーバー
 			if (scene == GAME3 && !darakyura.empty() && gameTimer >= totalTime) {
-				Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+			
 				scene = OVER;
-				// サウンドが再生されていなければ再生開始
-				if (!Novice::IsPlayingAudio(overBGM)) {
-					overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
-				}
+				
 			}
 			// 敵を倒しきったかどうかの判定を追加
 			if (darakyura.empty()) {
@@ -1094,7 +1091,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					if (e.pos.y > kWindowHeight - 200) {
 						e.isAlive = false;
 						lives--;
-						if (lives <= 0) scene = OVER;
+						if (lives <= 0) {
+							scene = OVER;
+							Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+							// サウンドが再生されていなければ再生開始
+							if (!Novice::IsPlayingAudio(overBGM)) {
+								overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+							}
+						}
 					}
 				}
 			}
