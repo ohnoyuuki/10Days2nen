@@ -315,23 +315,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case EXPLANATION2:// 説明2画面
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = SELECTION;//ステージ選択へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
 				scene = EXPLANATION1; //説明1画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_3] == 0 && keys[DIK_3] != 0) {
 				scene = EXPLANATION3; // 説明3画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			break;
 		case EXPLANATION3:// 説明3画面
 			if (preKeys[DIK_RETURN] == 0 && keys[DIK_RETURN] != 0) {
 				scene = SELECTION; //ステージ選択へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_1] == 0 && keys[DIK_1] != 0) {
 				scene = EXPLANATION1; //説明1画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 			if (preKeys[DIK_2] == 0 && keys[DIK_2] != 0) {
 				scene = EXPLANATION2; // 説明2画面へ
+				keteiSE = Novice::PlayAudio(Bgmketei, false, 1.0f);//決定音
 			}
 
 			break;
@@ -1000,6 +1006,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (scene == GAME3 && !darakyura.empty() && gameTimer >= totalTime) {
 			
 				scene = OVER;
+				Novice::StopAudio(Stage3BGM); // 再生中の音を止める
 				
 			}
 			// 敵を倒しきったかどうかの判定を追加
@@ -1288,6 +1295,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							lives--; // ライフを減らす
 							if (lives <= 0) {
 								scene = OVER; // ゲームオーバーへ
+								Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+								// サウンドが再生されていなければ再生開始
+								if (!Novice::IsPlayingAudio(overBGM)) {
+									overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+								}
 							}
 						}
 					}
