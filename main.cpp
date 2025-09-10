@@ -1006,7 +1006,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (scene == GAME3 && !darakyura.empty() && gameTimer >= totalTime) {
 			
 				scene = OVER;
-				Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+					Novice::StopAudio(Stage3BGM); // 再生中の音を止める
 				
 			}
 			// 敵を倒しきったかどうかの判定を追加
@@ -1295,11 +1295,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							lives--; // ライフを減らす
 							if (lives <= 0) {
 								scene = OVER; // ゲームオーバーへ
-								Novice::StopAudio(Stage3BGM); // 再生中の音を止める
-								// サウンドが再生されていなければ再生開始
-								if (!Novice::IsPlayingAudio(overBGM)) {
-									overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
-								}
 							}
 						}
 					}
