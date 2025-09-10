@@ -225,6 +225,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int selectHandle = Novice::LoadTexture("./Resources/SELECT.png");
 	//ステージ
 	int stageHandle = Novice::LoadTexture("./Resources/stage.png");
+	//ボスステージ
+	int bossStageHandle = Novice::LoadTexture("./Resources/bossStage.png");
 	//ゲームクリア
 	int clearHandle = Novice::LoadTexture("./Resources/CLEAR.png");
 	//ゲームオーバ
@@ -912,6 +914,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							lives--; // ライフを減らす
 							if (lives <= 0) {
 								scene = OVER; // ゲームオーバーへ
+								Novice::StopAudio(Stage2BGM); // 再生中の音を止める
+								// サウンドが再生されていなければ再生開始
+								if (!Novice::IsPlayingAudio(overBGM)) {
+									overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+								}
 							}
 						}
 					}
@@ -990,7 +997,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		}break;
 
-		case GAME3:
+		case GAME3://--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		{
 			// サウンドが再生されていなければ再生開始
 			if (!Novice::IsPlayingAudio(Stage3BGM)) {
@@ -1004,10 +1011,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			// ドラキュラが存在し、かつゲーム時間が経過したらゲームオーバー
 			if (scene == GAME3 && !darakyura.empty() && gameTimer >= totalTime) {
-			
+
 				scene = OVER;
-					Novice::StopAudio(Stage3BGM); // 再生中の音を止める
-				
+				Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+				// サウンドが再生されていなければ再生開始
+				if (!Novice::IsPlayingAudio(overBGM)) {
+					overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+				}
+
 			}
 			// 敵を倒しきったかどうかの判定を追加
 			if (darakyura.empty()) {
@@ -1295,6 +1306,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							lives--; // ライフを減らす
 							if (lives <= 0) {
 								scene = OVER; // ゲームオーバーへ
+								Novice::StopAudio(Stage3BGM); // 再生中の音を止める
+								// サウンドが再生されていなければ再生開始
+								if (!Novice::IsPlayingAudio(overBGM)) {
+									overBGM = Novice::PlayAudio(Bgmover, false, 1.0f);
+								}
 							}
 						}
 					}
@@ -1511,7 +1527,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
 				}
 			}
-	
+
 			break;
 
 		case GAME2://ステージ２---------------------------------------------------------------------------------------------------------------------------------------
@@ -1642,7 +1658,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		case GAME3://ステージ３
 
 			//ステージ
-			Novice::DrawSprite(0, 0, stageHandle, 1.0f, 1.0f, 0.0f, WHITE);
+			Novice::DrawSprite(0, 0, bossStageHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
 			//リソースタイマーの更新-------------------------------------------------------
 			// 桁ごとに分解
