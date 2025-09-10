@@ -340,6 +340,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (seconds >= 60) {
 				scene = CLEAR;
 				Novice::StopAudio(Stage1BGM); // 再生中の音を止める
+				// サウンドが再生されていなければ再生開始
+				if (!Novice::IsPlayingAudio(Stage1BGM)) {
+					Stage1BGM = Novice::PlayAudio(Bgmstage1, false, 1.0f);
+				}
 			}
 			//---------------------------------------------------
 
