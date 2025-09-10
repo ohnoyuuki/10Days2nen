@@ -153,6 +153,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int frame = 0;   // フレームカウント
 	int seconds = 0; // 秒数
 
+	//HP表示
+//十の位
+	int LIVEs2[10] = {};
+	for (int j = 0; j < 2; j++) {
+		char filePath2[64];
+		snprintf(filePath2, sizeof(filePath2), "./Resources/%d.png", j); // 安全な関数
+		LIVEs2[j] = Novice::LoadTexture(filePath2);
+	}
+
+	//一の位
+	int LIVEs[10] = {};
+	for (int j = 0; j < 10; j++) {
+		char filePath2[64];
+		snprintf(filePath2, sizeof(filePath2), "./Resources/%d.png", j); // 安全な関数
+		LIVEs[j] = Novice::LoadTexture(filePath2);
+	}
+
+	//const int graphWidth = 71;
+
+
 
 	// サウンドデータ
 	int Bgmtitle = Novice::LoadAudio("./Resources/Sounds/title.mp3");//タイトル音
@@ -1407,10 +1427,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			//-----------------------------------------------------------------------------
 
-
-
 			//魔法陣の耐久値
 			Novice::DrawSprite(10, 60, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
+
+			//魔法陣のHP表示
+			int numbersArray3[1];
+			numbersArray3[0] = lives / 10; // 十の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					0, 60,
+					LIVEs[numbersArray3[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+
+			int numbersArray2[1];
+			numbersArray2[0] = lives % 10; // 一の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					30, 60,
+					LIVEs[numbersArray2[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+
 
 			// プレイヤー描画
 			Novice::DrawSprite((int)player.pos.x, (int)player.pos.y, playerHandle, 1.0f, 1.0f, 0.0f, WHITE);
@@ -1424,7 +1464,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& e : goburins) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, goburinHandle, 1.0f, 1.0f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = e.hp / 10; // 十の位
+
+					for (int a = 0; a < 1; a++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 10, (int)e.pos.y - 20,
+							LIVEs[numbersArray4[a]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+
+					int numbersArray5[1];
+					numbersArray5[0] = e.hp % 10; // 一の位
+					for (int k = 0; k < 1; k++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 30, (int)e.pos.y - 20,
+							LIVEs[numbersArray5[k]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
 					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
@@ -1432,14 +1492,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& p : powerUps) {
 				if (p.isAlive) {
 					Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
 				}
 			}
 			//弾増加アップアイテム描画
 			for (auto& s : shotgunPowerUps) {
 				if (s.isAlive) {
 					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
 				}
 			}
 			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
@@ -1481,16 +1539,56 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& e : komoris) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, komoriHandle, 1.0f, 1.0f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = e.hp / 10; // 十の位
+
+					for (int a = 0; a < 1; a++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 10, (int)e.pos.y - 20,
+							LIVEs[numbersArray4[a]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+
+					int numbersArray5[1];
+					numbersArray5[0] = e.hp % 10; // 一の位
+					for (int k = 0; k < 1; k++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 30, (int)e.pos.y - 20,
+							LIVEs[numbersArray5[k]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
 					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 			//爆弾描画
-			for (auto& b : bakudans) {
-				if (b.isAlive) {
-					Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, bakudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)b.pos.x - 10, (int)b.pos.y - 30, "HP:%d", b.hp);
-					Novice::DrawSprite((int)b.pos.x - 10, (int)b.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+			for (auto& baku : bakudans) {
+				if (baku.isAlive) {
+					Novice::DrawSprite((int)baku.pos.x, (int)baku.pos.y, bakudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = baku.hp / 10; // 十の位
+
+					for (int a = 0; a < 1; a++) {
+						Novice::DrawSprite(
+							(int)baku.pos.x + 10, (int)baku.pos.y - 20,
+							LIVEs[numbersArray4[a]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+
+					int numbersArray5[1];
+					numbersArray5[0] = baku.hp % 10; // 一の位
+					for (int k = 0; k < 1; k++) {
+						Novice::DrawSprite(
+							(int)baku.pos.x + 30, (int)baku.pos.y - 20,
+							LIVEs[numbersArray5[k]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+					Novice::DrawSprite((int)baku.pos.x - 10, (int)baku.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 
@@ -1499,19 +1597,40 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& p : powerUps) {
 				if (p.isAlive) {
 					Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
+					//Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
 				}
 			}
 			//弾増加アップアイテム描画
 			for (auto& s : shotgunPowerUps) {
 				if (s.isAlive) {
 					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
+					//Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
 				}
 			}
 
+			//魔法陣の耐久値
+			Novice::DrawSprite(10, 60, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
-			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
+			//魔法陣のHP表示
+			//int numbersArray6[1];
+			numbersArray3[0] = lives / 10; // 十の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					0, 60,
+					LIVEs[numbersArray3[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+
+			//int numbersArray2[1];
+			numbersArray2[0] = lives % 10; // 一の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					30, 60,
+					LIVEs[numbersArray2[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
 
 			break;
 		case GAME3://ステージ３
@@ -1547,8 +1666,36 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (e.isAlive) {
 					// 当たり判定の中心から描画位置をオフセット
 					Novice::DrawSprite((int)e.pos.x - 32, (int)e.pos.y - 48, dorakyuraHandle, 1.0f, 1.0f, 0.0f, WHITE); // ★描画位置を修正
-					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
-					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = (static_cast<int>(e.hp / 100) % 10); // 三桁の位
+
+					Novice::DrawSprite(
+						(int)e.pos.x + 10, (int)e.pos.y - 75,
+						LIVEs[numbersArray4[0]],
+						0.3f, 0.3f, 0.0f, WHITE
+					);
+
+					int numbersArray5[1];
+					numbersArray5[0] = (static_cast<int>(e.hp / 10) % 10);// 十の位
+
+					Novice::DrawSprite(
+						(int)e.pos.x + 30, (int)e.pos.y - 75,
+						LIVEs[numbersArray5[0]],
+						0.3f, 0.3f, 0.0f, WHITE
+					);
+
+					int numbersArray6[1];
+					numbersArray6[0] = (static_cast<int>(e.hp / 1) % 10);// 十の位
+
+					Novice::DrawSprite(
+						(int)e.pos.x + 50, (int)e.pos.y - 75,
+						LIVEs[numbersArray6[0]],
+						0.3f, 0.3f, 0.0f, WHITE
+					);
+
+
+					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 70, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 
@@ -1556,16 +1703,56 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& e : komoris) {
 				if (e.isAlive) {
 					Novice::DrawSprite((int)e.pos.x, (int)e.pos.y, komoriHandle, 1.0f, 1.0f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)e.pos.x - 10, (int)e.pos.y - 30, "HP:%d", e.hp);
-					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = e.hp / 10; // 十の位
+
+					for (int a = 0; a < 1; a++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 10, (int)e.pos.y - 20,
+							LIVEs[numbersArray4[a]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+
+					int numbersArray5[1];
+					numbersArray5[0] = e.hp % 10; // 一の位
+					for (int k = 0; k < 1; k++) {
+						Novice::DrawSprite(
+							(int)e.pos.x + 30, (int)e.pos.y - 20,
+							LIVEs[numbersArray5[k]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+					Novice::DrawSprite((int)e.pos.x - 10, (int)e.pos.y - 20, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 			//爆弾描画
-			for (auto& b : bakudans) {
-				if (b.isAlive) {
-					Novice::DrawSprite((int)b.pos.x, (int)b.pos.y, bakudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)b.pos.x - 10, (int)b.pos.y - 30, "HP:%d", b.hp);
-					Novice::DrawSprite((int)b.pos.x - 10, (int)b.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
+			for (auto& baku : bakudans) {
+				if (baku.isAlive) {
+					Novice::DrawSprite((int)baku.pos.x, (int)baku.pos.y, bakudanHandle, 1.0f, 1.0f, 0.0f, WHITE);
+					//HPの表示
+					int numbersArray4[1];
+					numbersArray4[0] = baku.hp / 10; // 十の位
+
+					for (int a = 0; a < 1; a++) {
+						Novice::DrawSprite(
+							(int)baku.pos.x + 10, (int)baku.pos.y - 20,
+							LIVEs[numbersArray4[a]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+
+					int numbersArray5[1];
+					numbersArray5[0] = baku.hp % 10; // 一の位
+					for (int k = 0; k < 1; k++) {
+						Novice::DrawSprite(
+							(int)baku.pos.x + 30, (int)baku.pos.y - 20,
+							LIVEs[numbersArray5[k]],
+							0.3f, 0.3f, 0.0f, WHITE
+						);
+					}
+					Novice::DrawSprite((int)baku.pos.x - 10, (int)baku.pos.y - 30, hatoHandle, 0.4f, 0.4f, 0.0f, WHITE);
 				}
 			}
 
@@ -1574,19 +1761,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (auto& p : powerUps) {
 				if (p.isAlive) {
 					Novice::DrawSprite((int)p.pos.x, (int)p.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
+					//Novice::ScreenPrintf((int)p.pos.x - 10, (int)p.pos.y - 30, "HP:%d", p.hp);
 				}
 			}
 			//弾増加アップアイテム描画
 			for (auto& s : shotgunPowerUps) {
 				if (s.isAlive) {
 					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
-					Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
+					//Novice::ScreenPrintf((int)s.pos.x - 10, (int)s.pos.y - 30, "HP:%d", s.hp);
 				}
 			}
 
 
-			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
+			//魔法陣のHP表示
+			//int numbersArray3[1];
+			numbersArray3[0] = lives / 10; // 十の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					0, 60,
+					LIVEs[numbersArray3[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+
+			//int numbersArray2[1];
+			numbersArray2[0] = lives % 10; // 一の位
+			for (int j = 0; j < 1; j++) {
+				Novice::DrawSprite(
+					30, 60,
+					LIVEs[numbersArray2[j]],
+					0.5f, 0.5f, 0.0f, WHITE
+				);
+			}
+
 			break;
 
 		case CLEAR:
