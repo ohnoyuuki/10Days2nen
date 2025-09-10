@@ -1435,9 +1435,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			numbersArray3[0] = lives / 10; // 十の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					0, 60,
+					60, 70,
 					LIVEs[numbersArray3[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
@@ -1445,9 +1445,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			numbersArray2[0] = lives % 10; // 一の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					30, 60,
+					90, 70,
 					LIVEs[numbersArray2[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
@@ -1500,12 +1500,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					Novice::DrawSprite((int)s.pos.x, (int)s.pos.y, itemHandle, 0.7f, 0.6f, 0.0f, WHITE);
 				}
 			}
-			Novice::ScreenPrintf(20, 20, "Lives: %d", lives);
-			//Novice::ScreenPrintf(20, 40, "Time: %d:%02d", elapsedMinutes, elapsedSeconds);
-			//Novice::ScreenPrintf(20, 60, "Shot Speed Level: %d", powerUpLevel);
-			//Novice::ScreenPrintf(20, 80, "Shotgun Level: %d", player.shotgunLevel);
-			//Novice::ScreenPrintf(20, 100, "Shotgun Timer: %d", player.shotgunTimer / framePerSecond);
-			//Novice::ScreenPrintf(20, 120, "Seconds: %d", seconds);
+	
 			break;
 
 		case GAME2://ステージ２---------------------------------------------------------------------------------------------------------------------------------------
@@ -1616,9 +1611,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			numbersArray3[0] = lives / 10; // 十の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					0, 60,
+					60, 70,
 					LIVEs[numbersArray3[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
@@ -1626,9 +1621,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			numbersArray2[0] = lives % 10; // 一の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					30, 60,
+					90, 70,
 					LIVEs[numbersArray2[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
@@ -1772,15 +1767,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 			}
 
+			//魔法陣の耐久値
+			Novice::DrawSprite(10, 60, tateHandle, 1.0f, 1.0f, 0.0f, WHITE);
 
 			//魔法陣のHP表示
 			//int numbersArray3[1];
 			numbersArray3[0] = lives / 10; // 十の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					0, 60,
+					60, 70,
 					LIVEs[numbersArray3[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
@@ -1788,9 +1785,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			numbersArray2[0] = lives % 10; // 一の位
 			for (int j = 0; j < 1; j++) {
 				Novice::DrawSprite(
-					30, 60,
+					90, 70,
 					LIVEs[numbersArray2[j]],
-					0.5f, 0.5f, 0.0f, WHITE
+					0.4f, 0.4f, 0.0f, WHITE
 				);
 			}
 
