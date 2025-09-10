@@ -161,6 +161,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int Bgmmahou = Novice::LoadAudio("./Resources/Sounds/mahou.mp3");//魔法音
 	int Bgmclear = Novice::LoadAudio("./Resources/Sounds/clear.mp3");//ゲームクリア音
 	int Bgmover = Novice::LoadAudio("./Resources/Sounds/over.mp3");//ゲームオーバ音
+	int Bgmgoburin = Novice::LoadAudio("./Resources/Sounds/goburin.mp3");//ゴブリン音
 
 	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
 	int Bgmstage2 = Novice::LoadAudio("./Resources/Sounds/stage2.mp3");//ステージ2音
@@ -172,6 +173,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int keteiSE = -1;//決定SE
 	int canselSE = -1;//戻るSE
 	int mahouSE = -1;//魔法SE
+	int goburinSE = -1;//ゴブリンSE
 	int clearBGM = -1;//ゲームクリアBGM
 	int overBGM = -1;//ゲームオーバBGM
 
@@ -543,7 +545,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					if (dist < b.radius + e.radius) {
 						b.isAlive = false;
 						e.hp--;
-						if (e.hp <= 0) e.isAlive = false;
+						if (e.hp <= 0) { e.isAlive = false; }
+						goburinSE = Novice::PlayAudio(Bgmgoburin, false, 1.0f);
 					}
 				}
 
