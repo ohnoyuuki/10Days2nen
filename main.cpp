@@ -162,14 +162,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int Bgmstage1 = Novice::LoadAudio("./Resources/Sounds/stage1.mp3");//ステージ１音
 
 
-	//サウンドハンドル
+	//サウンドハンドル----------------------
 	int titleBGM = -1;// タイトルBGM
 	int keteiSE = -1;//決定SE
 	int canselSE = -1;//戻るSE
 	int mahouSE = -1;//魔法SE
+	int clearBGM = -1;//ゲームクリアBGM
+	int overBGM = -1;//ゲームオーバBGM
+
+
 
 	int Stage1BGM = -1;//ステージ１BGM
-
+	int Stage2BGM = -1;//ステージ２ BGM
+	int Stage3BGM = -1;//ステージ２ BGM
+	//---------------------------------------
 
 
 
@@ -341,8 +347,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				scene = CLEAR;
 				Novice::StopAudio(Stage1BGM); // 再生中の音を止める
 				// サウンドが再生されていなければ再生開始
-				if (!Novice::IsPlayingAudio(Stage1BGM)) {
-					Stage1BGM = Novice::PlayAudio(Bgmstage1, false, 1.0f);
+				if (!Novice::IsPlayingAudio(clearBGM)) {
+					clearBGM = Novice::PlayAudio(Bgmclear, false, 1.0f);
 				}
 			}
 			//---------------------------------------------------
